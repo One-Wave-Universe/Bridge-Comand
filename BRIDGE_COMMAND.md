@@ -83,3 +83,24 @@ PY
 ```
 
 Store raw metadata separately from transformed One-Wave representations and preserve source URLs, record IDs/DOIs, retrieval time, and transform version.
+
+
+## Self-healing bridge lattice
+
+The machine must not depend on any single remote-control route to repair another.
+Install the local watchdog once:
+
+```bash
+bash hive-pipe/install_bridge_lattice_watchdog.sh
+```
+
+It runs `bridge_lattice_watchdog.py --watch` as
+`one-wave-bridge-lattice-watchdog.service`. Every cycle it checks the known
+local listeners (Hive Pipe agent/gateway, GitHub pull worker, and Desktop
+Commander), restarts only failed known services, and writes JSONL receipts under
+`~/.local/state/one-wave-bridge-lattice/watchdog.jsonl`.
+
+The watchdog is deliberately bounded: it does not reset repositories, merge
+branches, rewrite project files, rotate credentials, or treat a queued request
+as execution. A healthy lattice requires multiple live local listeners and at
+least one transport listener (pull worker or Hive Pipe gateway).

@@ -5,10 +5,21 @@ set -euo pipefail
 # One-Wave-Science checkout. It creates a private runtime clone for bridge code.
 SOURCE_REPO="${ONE_WAVE_PROJECT_ROOT:-}"
 if [[ -z "$SOURCE_REPO" ]]; then
-  SOURCE_REPO="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+  candidate="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+  if [[ -n "$candidate" ]] && git -C "$candidate" remote get-url origin 2>/dev/null | grep -q 'One-Wave-Science'; then
+    SOURCE_REPO="$candidate"
+  fi
+fi
+if [[ -z "$SOURCE_REPO" ]]; then
+  for candidate in "$HOME/One-Wave-Science" "$HOME/One_Wave_Science" "/home/Scales/One-Wave-Science"; do
+    if [[ -d "$candidate/.git" ]] && git -C "$candidate" remote get-url origin 2>/dev/null | grep -q 'One-Wave-Science'; then
+      SOURCE_REPO="$candidate"
+      break
+    fi
+  done
 fi
 if [[ -z "$SOURCE_REPO" || ! -d "$SOURCE_REPO/.git" ]]; then
-  echo "Run this from inside the One-Wave-Science checkout or set ONE_WAVE_PROJECT_ROOT." >&2
+  echo "One-Wave-Science checkout not found; set ONE_WAVE_PROJECT_ROOT." >&2
   exit 2
 fi
 SOURCE_REPO="$(cd "$SOURCE_REPO" && pwd)"

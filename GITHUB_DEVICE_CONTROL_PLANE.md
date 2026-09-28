@@ -59,3 +59,7 @@ GitHub secrets hold gateway credentials. Never commit or display tokens in reque
 4. Do not wait indefinitely for a listener.
 5. After three equivalent failures, switch route/angle.
 6. Only a matching machine receipt proves Jetson execution.
+
+## Device lattice
+
+Load `DEVICE_LATTICE.md` for cross-device routing. Phone, laptop and Jetson are addressable lattice nodes through GitHub; preserve one request ID, provenance and chained hop receipts across every route. “Open” means authenticated/routable, never unauthenticated shell exposure.

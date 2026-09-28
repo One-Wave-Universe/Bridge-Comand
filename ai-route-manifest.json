@@ -1,0 +1,55 @@
+{
+  "schema": "one-wave-ai-route-manifest/v1",
+  "authority": "Bridge-Comand",
+  "start_here": "AI_ROUTING.md",
+  "nodes": [
+    "phone",
+    "laptop",
+    "jetson",
+    "github"
+  ],
+  "common_control_plane": "github",
+  "paths": [
+    [
+      "phone",
+      "github",
+      "laptop"
+    ],
+    [
+      "phone",
+      "github",
+      "jetson"
+    ],
+    [
+      "laptop",
+      "github",
+      "jetson"
+    ],
+    [
+      "phone",
+      "github",
+      "laptop",
+      "jetson"
+    ],
+    [
+      "phone",
+      "github",
+      "jetson",
+      "laptop"
+    ]
+  ],
+  "required_contracts": [
+    "DEVICE_LATTICE.md",
+    "GITHUB_DEVICE_CONTROL_PLANE.md",
+    "METADATA_AND_HANDOFF_CONTRACT.md"
+  ],
+  "rules": {
+    "stable_request_id": true,
+    "preserve_provenance": true,
+    "preserve_assumption_transformation_ids": true,
+    "final_target_receipt_required": true,
+    "failures_are_receipts": true,
+    "switch_route_after_equivalent_failures": 3,
+    "unauthenticated_shell": false
+  }
+}

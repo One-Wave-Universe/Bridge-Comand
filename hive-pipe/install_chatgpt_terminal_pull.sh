@@ -57,9 +57,13 @@ StartLimitIntervalSec=0
 [Service]
 Type=simple
 WorkingDirectory=$RUNTIME_ROOT
+ExecStartPre=/usr/bin/git -C $RUNTIME_ROOT fetch --prune origin main
+ExecStartPre=/usr/bin/git -C $RUNTIME_ROOT checkout --detach origin/main
 ExecStart=/usr/bin/python3 $RUNTIME_ROOT/hive-pipe/chatgpt_terminal_pull.py --watch
 Restart=always
 RestartSec=5
+# A transient GitHub/network outage must not permanently kill the bridge.
+TimeoutStartSec=45
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict

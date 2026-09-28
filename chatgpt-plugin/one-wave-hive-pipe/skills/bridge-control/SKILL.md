@@ -14,3 +14,7 @@ When a route fails, check the bridge lattice watchdog and alternate public route
 Before cross-repo worker or machine handoffs, load `METADATA_AND_HANDOFF_CONTRACT.md` and preserve request IDs, canon references, provenance, source class, limits, and expected receipt type.
 For Jetson Brain work, preserve FIELD/VOID/ROUTER role, backend, source tag, state hashes, budgets, and CPU/GPU parity fixture metadata.
 Failures are receipts; after three equivalent failures switch route/angle rather than repeating blindly.
+
+## Phone / Android route
+
+Mobile clients use `PHONE_BRIDGE_PROFILE.md`. Do not assume localhost, SSH, inbound ports, persistent background execution, or a repo checkout on the phone. Preserve the same envelope/request ID through outbound HTTPS/durable queue to the machine receipt, with idempotent resume after suspension.

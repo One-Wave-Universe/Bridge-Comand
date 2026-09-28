@@ -122,3 +122,7 @@ For immediate phone→Jetson commands, use GitHub as the public control plane: s
 ## Common device front door
 
 Phone and laptop share the same GitHub→Actions→Jetson control plane. See `GITHUB_DEVICE_CONTROL_PLANE.md`. Local listeners, SSH, LAN access and Remote Desktop are optional accelerators/failovers, not prerequisites for originating a Jetson request.
+
+## Device lattice
+
+Load `DEVICE_LATTICE.md` for cross-device routing. Phone, laptop and Jetson are addressable lattice nodes through GitHub; preserve one request ID, provenance and chained hop receipts across every route. “Open” means authenticated/routable, never unauthenticated shell exposure.

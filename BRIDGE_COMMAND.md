@@ -1,25 +1,33 @@
 # Bridge Command
 
+## What this repo is
+
+Pipes. Relays. Jetson. AI adapters. Receipts.
+Not the transfluxor. Not MAGNETICS.md. Those stay in Builds.
+
+`One_Wave_Bench/hive-pipe` is **here** now as `hive-pipe/`.
+
 ## Startup
 
-1. Reference the current repository first.
-2. For bridge/relay/terminal work, use this repository as authority.
-3. If direct Hive Pipe MCP tools are present, call `terminal_reference`, `terminal_pwd`, then a harmless `terminal_run`.
-4. If direct MCP is absent but GitHub access exists, use the mirrored pull bridge on:
+1. Reference this repository first for any bridge/relay/terminal work.
+2. If direct Hive Pipe MCP tools are present, call `terminal_reference`, `terminal_pwd`, then a harmless `terminal_run`.
+3. If direct MCP is absent but GitHub access exists, use the mirrored pull bridge on:
    - `chatgpt-terminal`
    - `chatgpt-terminal-backup`
-5. Write the same request ID/content to `.chatgpt-terminal/request.json` on both branches.
-6. Do not claim execution until `.chatgpt-terminal/result.json` returns the matching ID.
-7. If the pull bridge is unavailable, use the next documented independent route: GitHub Actions, remote helper, client adapter, or SSH.
-8. Only ask the human to run a command when all automated routes are unavailable and a genuine local/root/physical activation boundary remains.
+4. Write the same request ID/content to `.chatgpt-terminal/request.json` on both branches.
+5. Do not claim execution until `.chatgpt-terminal/result.json` returns the matching ID.
+6. If the pull bridge is unavailable, use the next documented independent route: GitHub Actions, remote helper, client adapter, or SSH.
+7. Only ask the human to run a command when all automated routes are unavailable and a genuine local/root/physical activation boundary remains.
 
 ## Bridge doctor
 
-Current implementation is still mirrored from One-Wave-Science while migration completes:
+Run from this repo root:
 
 ```bash
-python3 One_Wave_Bench/hive-pipe/bridge_doctor.py --profile all
+python3 hive-pipe/bridge_doctor.py --profile all
 ```
+
+Old path `One_Wave_Bench/hive-pipe/bridge_doctor.py` is stale. Do not use it.
 
 Exit meanings:
 - 0 = required checks passed
@@ -34,6 +42,15 @@ Exit meanings:
 - Never claim a command ran from documentation, intent, or a branch write.
 - Use intention + consequence.
 - Do not duplicate bridge authority into unrelated repos.
+
+## Sister repos
+
+| Need | Repo |
+|---|---|
+| CELL / magnetics / flower | `One-Wave-Universe/Builds` |
+| Math / hypothesis | Science repos |
+| Fiction | `Mythos-and-Stories` |
+| This pipe | `One-Wave-Universe/Bridge-Comand` |
 
 ## Open-data metadata
 

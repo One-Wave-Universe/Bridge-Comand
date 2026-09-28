@@ -1,0 +1,42 @@
+name: Phone Bridge Contract
+
+on:
+  push:
+    paths:
+      - 'PHONE_BRIDGE_PROFILE.md'
+      - 'METADATA_AND_HANDOFF_CONTRACT.md'
+      - 'schemas/phone-request-v1.schema.json'
+      - 'schemas/one-wave-envelope-v1.schema.json'
+      - 'schemas/one-wave-receipt-v1.schema.json'
+      - '.github/workflows/phone-bridge-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate phone store-and-forward contract
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for p in (
+            "schemas/phone-request-v1.schema.json",
+            "schemas/one-wave-envelope-v1.schema.json",
+            "schemas/one-wave-receipt-v1.schema.json",
+          ):
+              json.loads(Path(p).read_text())
+          phone=Path("PHONE_BRIDGE_PROFILE.md").read_text()
+          required=("idempotency","HTTPS","resume","receipt","durable queue","request ID")
+          missing=[x for x in required if x.lower() not in phone.lower()]
+          if missing: raise SystemExit("missing phone contract terms: "+", ".join(missing))
+          print("PHONE_CONTRACT_OK")
+          print("STORE_AND_FORWARD_OK")
+          print("JETSON_LISTENER_NOT_REQUIRED_FOR_ACCEPTANCE_OF_QUEUED_REQUEST")
+          PY

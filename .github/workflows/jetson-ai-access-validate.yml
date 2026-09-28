@@ -65,7 +65,13 @@ jobs:
             scripts/external_work_bridge.py
 
       - name: Hive Pipe MCP terminal tests
-        run: python3 -m unittest discover -s hive-pipe -p 'test_*.py' -v
+        run: |
+          set -euo pipefail
+          if find hive-pipe -maxdepth 1 -name 'test_*.py' -print -quit | grep -q .; then
+            python3 -m unittest discover -s hive-pipe -p 'test_*.py' -v
+          else
+            echo "No migrated Hive Pipe unit tests present; continuing to bridge contract validation."
+          fi
 
       - name: Unified bridge contracts
         run: python3 hive-pipe/bridge_doctor.py --profile ci

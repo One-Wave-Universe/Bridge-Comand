@@ -12,3 +12,9 @@ Rules:
 - Use intention + consequence for executable bridge actions.
 - Keep credentials and tokens outside git.
 - Do not duplicate bridge authority into Builds or Science.
+
+## Shared metadata contract
+
+All Foreman, worker, Jetson Brain, AI-adapter, simulator, and machine handoffs use the transport contract in `METADATA_AND_HANDOFF_CONTRACT.md`. JSON schemas live under `schemas/`.
+
+Project semantics remain in the owning repo. Bridge-Comand owns transport envelopes, route evidence, provenance transport, and execution receipts.

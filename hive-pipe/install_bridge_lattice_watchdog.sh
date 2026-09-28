@@ -13,6 +13,9 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=oneshot
+Environment=BRIDGE_FAIL_THRESHOLD=3
+Environment=BRIDGE_RECOVER_THRESHOLD=2
+Environment=BRIDGE_REPAIR_COOLDOWN=60
 ExecStart=/usr/bin/python3 $SCRIPT_DIR/bridge_lattice_watchdog.py
 NoNewPrivileges=true
 PrivateTmp=true

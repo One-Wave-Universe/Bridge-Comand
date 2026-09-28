@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "One-Wave Receipt v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "request_id",
+    "route",
+    "machine",
+    "exit_code"
+  ],
+  "properties": {
+    "schema": {
+      "const": "one-wave-receipt/v1"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "route": {
+      "type": "string"
+    },
+    "machine": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "finished_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "exit_code": {
+      "type": "integer"
+    },
+    "stdout": {
+      "type": "string"
+    },
+    "stderr": {
+      "type": "string"
+    },
+    "artifacts": {
+      "type": "array"
+    },
+    "commit_before": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "commit_after": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "receipt_hash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

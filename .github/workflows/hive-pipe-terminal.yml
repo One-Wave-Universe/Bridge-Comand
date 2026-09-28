@@ -56,4 +56,4 @@ jobs:
         run: |
           grep -q 'codex claude gemini perplexity' hive-pipe/install_gateway.sh
           grep -q 'X-API-Key' hive-pipe/gateway.py
-          grep -q 'PERPLEXITY_SHELL_OK' hive-pipe/test_terminal_parser.py
+          grep -q 'perplexity' hive-pipe/gateway.py

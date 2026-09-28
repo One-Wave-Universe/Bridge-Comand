@@ -41,3 +41,7 @@ Consequence: `Read system identity only; make no machine changes.`
 If the Jetson gateway is unreachable, the Action fails visibly and preserves the failure log. The phone remains able to inspect/retry through GitHub. Do not reinterpret a failed Action as successful execution.
 
 For durable deferred work, use the phone store-and-forward contract; for immediate machine execution, use Jetson Command Lane.
+
+## Common device front door
+
+Phone and laptop share the same GitHub→Actions→Jetson control plane. See `GITHUB_DEVICE_CONTROL_PLANE.md`. Local listeners, SSH, LAN access and Remote Desktop are optional accelerators/failovers, not prerequisites for originating a Jetson request.

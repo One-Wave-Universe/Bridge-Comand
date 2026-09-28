@@ -40,7 +40,7 @@ Requires=hive-pipe-gateway.service
 [Service]
 Type=simple
 EnvironmentFile=$ENV_FILE
-ExecStart=/usr/bin/env cloudflared tunnel --no-autoupdate run --token ${HIVE_PIPE_TUNNEL_TOKEN}
+ExecStart=/usr/bin/env bash -lc 'exec cloudflared tunnel --no-autoupdate run --token "$HIVE_PIPE_TUNNEL_TOKEN"'
 Restart=always
 RestartSec=5
 NoNewPrivileges=true

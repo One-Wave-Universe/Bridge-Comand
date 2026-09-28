@@ -21,18 +21,16 @@ SERVICES={
  "hive-pipe-agent.service":r"agent\.sh --watch",
  "hive-pipe-gateway.service":r"gateway\.py .*8765",
  "one-wave-chatgpt-terminal-pull.service":r"chatgpt_terminal_pull\.py --watch",
- "desktop-commander-remote.service":r"desktop-commander.*remote",
  "hive-pipe-relay.service":r"cloudflared tunnel .* run",
 }
 INSTALLERS={
  "hive-pipe-gateway.service":HERE/"install_gateway.sh",
  "hive-pipe-agent.service":HERE/"install_gateway.sh",
  "one-wave-chatgpt-terminal-pull.service":HERE/"install_chatgpt_terminal_pull.sh",
- "desktop-commander-remote.service":HERE/"install_desktop_commander_remote.sh",
  "hive-pipe-relay.service":HERE/"install_persistent_relay.sh",
 }
 TRANSPORT={"hive-pipe-gateway.service","one-wave-chatgpt-terminal-pull.service"}
-PUBLIC={"hive-pipe-relay.service","one-wave-chatgpt-terminal-pull.service","desktop-commander-remote.service"}
+PUBLIC={"hive-pipe-relay.service","one-wave-chatgpt-terminal-pull.service"}
 
 def run(argv,timeout=15):
  return subprocess.run(argv,text=True,capture_output=True,timeout=timeout,check=False)

@@ -51,8 +51,6 @@ def routes()->list[RouteProbe]:
     return [
       probe_service("one-wave-chatgpt-terminal-pull.service",r"chatgpt_terminal_pull\.py --watch",
                     ["systemctl","--user","restart","one-wave-chatgpt-terminal-pull.service"]),
-      probe_service("desktop-commander-remote.service",r"desktop-commander.*remote",
-                    ["systemctl","--user","restart","desktop-commander-remote.service"]),
       probe_service("hive-pipe-gateway.service",r"gateway\.py .*8765",
                     ["systemctl","--user","restart","hive-pipe-gateway.service"]),
       probe_service("hive-pipe-relay.service",r"cloudflared tunnel .* run",
@@ -103,7 +101,6 @@ def cycle(repair:bool=True)->int:
           "reason":"no-local-execution-route",
           "requested_actions":[
             "start one-wave-chatgpt-terminal-pull.service",
-            "start desktop-commander-remote.service",
             "run bridge_lattice_watchdog.py once",
           ],
           "human_transport_required":False,

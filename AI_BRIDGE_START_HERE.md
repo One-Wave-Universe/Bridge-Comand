@@ -114,3 +114,9 @@ A valid ingest must actually query the public endpoint, persist raw metadata sep
 - Do not invent success from documentation or intent.
 - Do not expose tokens or credentials.
 - Do not duplicate bridge authority into Science after migration.
+
+## Unified handoff metadata
+
+Use `METADATA_AND_HANDOFF_CONTRACT.md` for Foreman jobs, worker handoffs, Jetson Brain FIELD/GPU ↔ VOID/CPU routing, AI adapters, simulator jobs, public-data metadata, and machine receipts. Schemas: `schemas/one-wave-envelope-v1.schema.json` and `schemas/one-wave-receipt-v1.schema.json`.
+
+Preserve `real|simulated|test` source class end-to-end. Raw public metadata stays separate from transformed One-Wave representations. A worker may return evidence but does not self-promote a Foreman job to DONE.

@@ -1,0 +1,20 @@
+name: Bridge Mailbox Heartbeat
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Verify bridge authority is reachable
+        run: |
+          set -euo pipefail
+          git ls-remote https://github.com/One-Wave-Universe/Bridge-Comand.git refs/heads/main
+          git ls-remote https://github.com/One-Wave-Universe/One-Wave-Science.git refs/heads/chatgpt-terminal refs/heads/chatgpt-terminal-backup
+          echo BRIDGE_MAILBOX_EXTERNAL_ANCHOR_OK

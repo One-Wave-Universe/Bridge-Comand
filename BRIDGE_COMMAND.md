@@ -104,3 +104,9 @@ The watchdog is deliberately bounded: it does not reset repositories, merge
 branches, rewrite project files, rotate credentials, or treat a queued request
 as execution. A healthy lattice requires multiple live local listeners and at
 least one transport listener (pull worker or Hive Pipe gateway).
+
+## Unified handoff metadata
+
+Use `METADATA_AND_HANDOFF_CONTRACT.md` for Foreman jobs, worker handoffs, Jetson Brain FIELD/GPU ↔ VOID/CPU routing, AI adapters, simulator jobs, public-data metadata, and machine receipts. Schemas: `schemas/one-wave-envelope-v1.schema.json` and `schemas/one-wave-receipt-v1.schema.json`.
+
+Preserve `real|simulated|test` source class end-to-end. Raw public metadata stays separate from transformed One-Wave representations. A worker may return evidence but does not self-promote a Foreman job to DONE.

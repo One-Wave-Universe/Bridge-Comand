@@ -17,4 +17,18 @@ jobs:
           set -euo pipefail
           git ls-remote https://github.com/One-Wave-Universe/Bridge-Comand.git refs/heads/main
           git ls-remote https://github.com/One-Wave-Universe/One-Wave-Science.git refs/heads/chatgpt-terminal refs/heads/chatgpt-terminal-backup
+          for branch in chatgpt-terminal chatgpt-terminal-backup; do
+            request="$(curl -fsSL "https://raw.githubusercontent.com/One-Wave-Universe/One-Wave-Science/$branch/.chatgpt-terminal/request.json")"
+            result="$(curl -fsSL "https://raw.githubusercontent.com/One-Wave-Universe/One-Wave-Science/$branch/.chatgpt-terminal/result.json" || true)"
+            req_id="$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("id",""))' <<<"$request")"
+            res_id="$(python3 -c 'import json,sys; 
+try: print(json.load(sys.stdin).get("id",""))
+except Exception: print("")' <<<"$result")"
+            echo "$branch request=$req_id result=$res_id"
+            if [[ "$req_id" == "$res_id" ]]; then
+              echo "$branch MACHINE_RECEIPT_MATCHED"
+            else
+              echo "$branch MACHINE_RECEIPT_PENDING"
+            fi
+          done
           echo BRIDGE_MAILBOX_EXTERNAL_ANCHOR_OK

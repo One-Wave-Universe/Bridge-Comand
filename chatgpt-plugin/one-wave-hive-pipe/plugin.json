@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "one-wave-hive-pipe",
+  "version": "0.1.0",
+  "description": "Persistent bounded terminal control for One-Wave machines through Hive Pipe.",
+  "author": {"name": "One-Wave Universe"},
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "One-Wave Hive Pipe",
+        "shortDescription": "Bounded terminal control through Hive Pipe",
+        "longDescription": "Connect ChatGPT to the authenticated One-Wave Hive Pipe MCP gateway for bounded terminal, Python, C++, health, and repository operations.",
+        "developerName": "One-Wave Universe",
+        "category": "Developer Tools",
+        "capabilities": ["Interactive"],
+        "defaultPrompt": ["Check the Hive Pipe terminal reference and machine health.", "Verify the bridge lattice and repair failed routes.", "Run a bounded command and return its receipt."]
+      }
+    }
+  }
+}

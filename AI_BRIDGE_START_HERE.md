@@ -120,3 +120,7 @@ A valid ingest must actually query the public endpoint, persist raw metadata sep
 Use `METADATA_AND_HANDOFF_CONTRACT.md` for Foreman jobs, worker handoffs, Jetson Brain FIELD/GPU ↔ VOID/CPU routing, AI adapters, simulator jobs, public-data metadata, and machine receipts. Schemas: `schemas/one-wave-envelope-v1.schema.json` and `schemas/one-wave-receipt-v1.schema.json`.
 
 Preserve `real|simulated|test` source class end-to-end. Raw public metadata stays separate from transformed One-Wave representations. A worker may return evidence but does not self-promote a Foreman job to DONE.
+
+## Phone / Android route
+
+Mobile clients use `PHONE_BRIDGE_PROFILE.md`. Do not assume localhost, SSH, inbound ports, persistent background execution, or a repo checkout on the phone. Preserve the same envelope/request ID through outbound HTTPS/durable queue to the machine receipt, with idempotent resume after suspension.

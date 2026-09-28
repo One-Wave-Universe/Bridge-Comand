@@ -28,6 +28,8 @@ jobs:
           bash -n hive-pipe/install_gateway.sh
           bash -n hive-pipe/create_client_token.sh
           bash -n hive-pipe/install_chatgpt_terminal_pull.sh
+          bash -n hive-pipe/install_persistent_relay.sh
+          bash -n hive-pipe/install_bridge_lattice_watchdog.sh
           bash -n hive-pipe/bootstrap_chatgpt_terminal_pull.sh
       - name: Python syntax
         run: |
@@ -37,10 +39,11 @@ jobs:
             hive-pipe/terminal_parser.py \
             hive-pipe/chatgpt_terminal_pull.py \
             hive-pipe/bridge_doctor.py \
+            hive-pipe/bridge_lattice_watchdog.py \
             hive-pipe/deepseek_bridge.py \
             hive-pipe/deepseek_web_bridge.py
       - name: Hive Pipe tests
-        run: python3 -m unittest discover -s One_Wave_Bench/hive-pipe -p 'test_*.py' -v
+        run: python3 -m unittest discover -s hive-pipe -p 'test_*.py' -v
       - name: Unified bridge contracts
         run: python3 hive-pipe/bridge_doctor.py --profile ci
       - name: Perplexity first-class client config

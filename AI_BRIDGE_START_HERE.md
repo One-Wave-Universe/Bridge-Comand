@@ -132,3 +132,7 @@ Phone and laptop share the same GitHub→Actions→Jetson control plane. See `GI
 ## Device lattice
 
 Load `DEVICE_LATTICE.md` for cross-device routing. Phone, laptop and Jetson are addressable lattice nodes through GitHub; preserve one request ID, provenance and chained hop receipts across every route. “Open” means authenticated/routable, never unauthenticated shell exposure.
+
+## AI route discovery
+
+AI agents: load `AI_ROUTING.md` first for device work and parse `ai-route-manifest.json` when a machine-readable route map is useful. Do not stop merely because one listener/route is unavailable; use the authorized lattice failover rules and require a matching final-target receipt.

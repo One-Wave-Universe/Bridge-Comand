@@ -18,3 +18,7 @@ Rules:
 All Foreman, worker, Jetson Brain, AI-adapter, simulator, and machine handoffs use the transport contract in `METADATA_AND_HANDOFF_CONTRACT.md`. JSON schemas live under `schemas/`.
 
 Project semantics remain in the owning repo. Bridge-Comand owns transport envelopes, route evidence, provenance transport, and execution receipts.
+
+## Phone / Android route
+
+Mobile clients use `PHONE_BRIDGE_PROFILE.md`. Do not assume localhost, SSH, inbound ports, persistent background execution, or a repo checkout on the phone. Preserve the same envelope/request ID through outbound HTTPS/durable queue to the machine receipt, with idempotent resume after suspension.

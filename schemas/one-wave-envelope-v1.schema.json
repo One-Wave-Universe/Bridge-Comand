@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "One-Wave Envelope v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "id",
+    "kind",
+    "source",
+    "intention",
+    "consequence",
+    "payload"
+  ],
+  "properties": {
+    "schema": {
+      "const": "one-wave-envelope/v1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kind": {
+      "enum": [
+        "job",
+        "command",
+        "result",
+        "receipt",
+        "metadata",
+        "artifact"
+      ]
+    },
+    "created_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source": {
+      "type": "object"
+    },
+    "target": {
+      "type": "object"
+    },
+    "intention": {
+      "type": "string"
+    },
+    "consequence": {
+      "type": "string"
+    },
+    "canon": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "depends_on": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "payload": {},
+    "limits": {
+      "type": "object",
+      "properties": {
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_retries": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "destructive": {
+          "type": "boolean"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true
+}

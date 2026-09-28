@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "One-Wave Phone Request v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "request_id",
+    "envelope",
+    "client"
+  ],
+  "properties": {
+    "schema": {
+      "const": "one-wave-phone-request/v1"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "idempotency_key": {
+      "type": "string"
+    },
+    "client": {
+      "type": "object",
+      "required": [
+        "class"
+      ],
+      "properties": {
+        "class": {
+          "const": "phone"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "envelope": {
+      "type": "object"
+    },
+    "resume_from": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

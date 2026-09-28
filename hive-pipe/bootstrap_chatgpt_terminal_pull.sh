@@ -18,9 +18,9 @@ fi
 
 ONE_WAVE_PROJECT_ROOT="$PROJECT_ROOT" bash "$BRIDGE_ROOT/hive-pipe/install_gateway.sh"
 ONE_WAVE_PROJECT_ROOT="$PROJECT_ROOT" bash "$BRIDGE_ROOT/hive-pipe/install_chatgpt_terminal_pull.sh"
-bash "$BRIDGE_ROOT/hive-pipe/install_desktop_commander_remote.sh" || true
 bash "$BRIDGE_ROOT/hive-pipe/install_persistent_relay.sh" || true
 bash "$BRIDGE_ROOT/hive-pipe/install_bridge_lattice_watchdog.sh"
+bash "$BRIDGE_ROOT/hive-pipe/install_route_goblin.sh"
 
 python3 "$BRIDGE_ROOT/hive-pipe/bridge_lattice_watchdog.py" || true
 echo BRIDGE_LATTICE_BOOTSTRAP_COMPLETE

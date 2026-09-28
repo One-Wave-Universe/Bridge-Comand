@@ -17,6 +17,13 @@ SERVICES = {
     "hive-pipe-gateway.service": r"gateway\.py .*8765",
     "one-wave-chatgpt-terminal-pull.service": r"chatgpt_terminal_pull\.py --watch",
     "desktop-commander-remote.service": r"desktop-commander.*remote",
+    "hive-pipe-relay.service": r"cloudflared tunnel .* run",
+}
+
+INSTALLERS = {
+    "hive-pipe-gateway.service": HERE/"install_gateway.sh",
+    "hive-pipe-agent.service": HERE/"install_gateway.sh",
+    "hive-pipe-relay.service": HERE/"install_persistent_relay.sh",
 }
 
 def run(argv, timeout=15):
@@ -39,6 +46,16 @@ def receipt(event):
 def restart(service):
     p=run(["systemctl","--user","restart",service],20)
     ok,detail=active(service,SERVICES[service])
+    if ok:
+        return ok, detail, (p.stderr or p.stdout).strip()[-1000:]
+    # If a canonical unit is missing after repo migration, recreate it from the
+    # checked-in installer. Installers are bounded and keep credentials local.
+    installer=INSTALLERS.get(service)
+    missing=("not found" in (p.stderr or "").lower() or "not loaded" in (p.stderr or "").lower())
+    if installer and installer.is_file() and missing:
+        q=run(["/usr/bin/bash",str(installer)],45)
+        ok,detail=active(service,SERVICES[service])
+        return ok, detail, (q.stderr or q.stdout).strip()[-1000:]
     return ok, detail, (p.stderr or p.stdout).strip()[-1000:]
 
 def cycle():
@@ -53,7 +70,8 @@ def cycle():
     # two independent local listeners are alive, including pull or gateway.
     alive=[k for k,v in states.items() if v.get("ok") or v.get("repair_ok")]
     transport=any(k in alive for k in ("one-wave-chatgpt-terminal-pull.service","hive-pipe-gateway.service"))
-    healthy=len(alive)>=2 and transport
+    public=any(k in alive for k in ("one-wave-chatgpt-terminal-pull.service","desktop-commander-remote.service","hive-pipe-relay.service"))
+    healthy=len(alive)>=2 and transport and public
     receipt({"event":"bridge-lattice-cycle","healthy":healthy,"alive":alive,"services":states})
     return 0 if healthy else 1
 

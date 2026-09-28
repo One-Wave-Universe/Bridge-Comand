@@ -83,3 +83,7 @@ A phone bridge is not considered working until receipts show:
 - exact request ID reaches machine receipt.
 
 Documentation or a deployed endpoint alone is not proof.
+
+## Preferred phone control plane
+
+For immediate phone→Jetson commands, use GitHub as the public control plane: see `PHONE_GITHUB_JETSON.md` and `.github/workflows/jetson-command.yml`. The phone never needs the Jetson LAN address or gateway token.

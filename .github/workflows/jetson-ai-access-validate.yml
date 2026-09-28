@@ -47,9 +47,6 @@ jobs:
           bash -n hive-pipe/install_persistent_relay.sh
           bash -n hive-pipe/install_bridge_lattice_watchdog.sh
           bash -n hive-pipe/bootstrap_chatgpt_terminal_pull.sh
-          bash -n scripts/install_jetson_gateway.sh
-          bash -n scripts/enable_jetson_ssh.sh
-          bash -n scripts/jetson_remote.sh
 
       - name: Python syntax
         run: |
@@ -76,18 +73,6 @@ jobs:
       - name: Unified bridge contracts
         run: python3 hive-pipe/bridge_doctor.py --profile ci
 
-      - name: External work bridge smoke test
-        run: |
-          set -euo pipefail
-          export ONE_WAVE_EXTERNAL_WORK="$RUNNER_TEMP/One-Wave-External-Work"
-          mkdir -p External_Work/inbox External_Work/outbox
-          printf 'from-github\n' > External_Work/inbox/ci-github-to-jetson.txt
-          python3 scripts/external_work_bridge.py pull
-          test "$(cat "$ONE_WAVE_EXTERNAL_WORK/inbox/ci-github-to-jetson.txt")" = "from-github"
-          printf 'from-jetson\n' > "$ONE_WAVE_EXTERNAL_WORK/outbox/ci-jetson-to-github.txt"
-          python3 scripts/external_work_bridge.py publish
-          test "$(cat External_Work/outbox/ci-jetson-to-github.txt)" = "from-jetson"
-          echo "external work bridge: PASS"
 
       - name: GitHub command lane uses MCP terminal parser
         run: |

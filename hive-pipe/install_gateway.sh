@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-REPO_ROOT="$(dirname -- "$(dirname -- "$SCRIPT_DIR")")"
+REPO_ROOT="$(dirname -- "$SCRIPT_DIR")"
 PROJECT_ROOT="${ONE_WAVE_PROJECT_ROOT:-$REPO_ROOT}"
 EXTERNAL_WORK_ROOT="${ONE_WAVE_EXTERNAL_WORK:-$HOME/One-Wave-External-Work}"
 REFERENCE_STATE_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}/one-wave"

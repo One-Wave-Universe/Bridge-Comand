@@ -135,3 +135,18 @@ Source class must survive routing and compression.
 ## Failure law
 
 Failures are receipts too. Preserve route, request ID, exit code/error, timestamp, and next allowed route. After three equivalent failures, switch route/angle rather than silently repeating.
+
+## One-Wave scientific assumption/transform authority
+
+Canonical semantic authority lives in `One-Wave-Universe/One-Wave-Science/ASSUMPTION_TRANSFORMATION_CONTRACT.md` and its schemas.
+
+Bridge envelopes carrying scientific work must preserve, when applicable:
+- `assumption_ids` including version;
+- `transformation_ids` including version;
+- `validation_status`;
+- raw source IDs/content hashes;
+- control/null IDs;
+- validation receipt IDs;
+- residual/comparison artifact IDs.
+
+Bridge-Comand transports these fields unchanged. It must not promote PROPOSED/CALIBRATED/TESTING to SUPPORTED, redefine an equation, alter units, or silently replace a version. Scientific promotion belongs to validation against the Science contract.

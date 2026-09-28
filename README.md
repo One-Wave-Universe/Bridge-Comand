@@ -26,3 +26,7 @@ Mobile clients use `PHONE_BRIDGE_PROFILE.md`. Do not assume localhost, SSH, inbo
 ## Preferred phone control plane
 
 For immediate phone→Jetson commands, use GitHub as the public control plane: see `PHONE_GITHUB_JETSON.md` and `.github/workflows/jetson-command.yml`. The phone never needs the Jetson LAN address or gateway token.
+
+## Common device front door
+
+Phone and laptop share the same GitHub→Actions→Jetson control plane. See `GITHUB_DEVICE_CONTROL_PLANE.md`. Local listeners, SSH, LAN access and Remote Desktop are optional accelerators/failovers, not prerequisites for originating a Jetson request.

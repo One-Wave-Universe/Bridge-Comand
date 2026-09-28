@@ -22,3 +22,7 @@ Project semantics remain in the owning repo. Bridge-Comand owns transport envelo
 ## Phone / Android route
 
 Mobile clients use `PHONE_BRIDGE_PROFILE.md`. Do not assume localhost, SSH, inbound ports, persistent background execution, or a repo checkout on the phone. Preserve the same envelope/request ID through outbound HTTPS/durable queue to the machine receipt, with idempotent resume after suspension.
+
+## Preferred phone control plane
+
+For immediate phone→Jetson commands, use GitHub as the public control plane: see `PHONE_GITHUB_JETSON.md` and `.github/workflows/jetson-command.yml`. The phone never needs the Jetson LAN address or gateway token.

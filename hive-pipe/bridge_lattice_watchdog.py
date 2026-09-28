@@ -28,6 +28,7 @@ INSTALLERS={
  "hive-pipe-gateway.service":HERE/"install_gateway.sh",
  "hive-pipe-agent.service":HERE/"install_gateway.sh",
  "one-wave-chatgpt-terminal-pull.service":HERE/"install_chatgpt_terminal_pull.sh",
+ "desktop-commander-remote.service":HERE/"install_desktop_commander_remote.sh",
  "hive-pipe-relay.service":HERE/"install_persistent_relay.sh",
 }
 TRANSPORT={"hive-pipe-gateway.service","one-wave-chatgpt-terminal-pull.service"}

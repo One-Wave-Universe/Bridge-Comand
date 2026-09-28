@@ -12,23 +12,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Verify bridge authority is reachable
+      - name: Verify bridge authority and mailboxes
         run: |
           set -euo pipefail
           git ls-remote https://github.com/One-Wave-Universe/Bridge-Comand.git refs/heads/main
           git ls-remote https://github.com/One-Wave-Universe/One-Wave-Science.git refs/heads/chatgpt-terminal refs/heads/chatgpt-terminal-backup
-          for branch in chatgpt-terminal chatgpt-terminal-backup; do
-            request="$(curl -fsSL "https://raw.githubusercontent.com/One-Wave-Universe/One-Wave-Science/$branch/.chatgpt-terminal/request.json")"
-            result="$(curl -fsSL "https://raw.githubusercontent.com/One-Wave-Universe/One-Wave-Science/$branch/.chatgpt-terminal/result.json" || true)"
-            req_id="$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("id",""))' <<<"$request")"
-            res_id="$(python3 -c 'import json,sys; 
-try: print(json.load(sys.stdin).get("id",""))
-except Exception: print("")' <<<"$result")"
-            echo "$branch request=$req_id result=$res_id"
-            if [[ "$req_id" == "$res_id" ]]; then
-              echo "$branch MACHINE_RECEIPT_MATCHED"
-            else
-              echo "$branch MACHINE_RECEIPT_PENDING"
-            fi
-          done
-          echo BRIDGE_MAILBOX_EXTERNAL_ANCHOR_OK
+          python3 - <<'PY'
+          import json, urllib.request
+          base="https://raw.githubusercontent.com/One-Wave-Universe/One-Wave-Science"
+          for branch in ("chatgpt-terminal","chatgpt-terminal-backup"):
+              def get(name):
+                  try:
+                      with urllib.request.urlopen(f"{base}/{branch}/.chatgpt-terminal/{name}.json",timeout=10) as r:
+                          return json.load(r)
+                  except Exception:
+                      return {}
+              request=get("request"); result=get("result")
+              req=request.get("id",""); res=result.get("id","")
+              state="MACHINE_RECEIPT_MATCHED" if req and req==res else "MACHINE_RECEIPT_PENDING"
+              print(f"{branch} request={req} result={res} {state}")
+          print("BRIDGE_MAILBOX_EXTERNAL_ANCHOR_OK")
+          PY

@@ -1,0 +1,102 @@
+name: Jetson Science Metadata
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Metadata operation"
+        required: true
+        default: "list"
+        type: choice
+        options:
+          - list
+          - read
+      relative_path:
+        description: "File under .one-wave-metadata for read; blank for list"
+        required: false
+        default: ""
+        type: string
+      gateway_url:
+        description: "Optional current quick-tunnel URL; blank uses JETSON_GATEWAY_URL secret"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jetson-science-metadata
+  cancel-in-progress: false
+
+jobs:
+  reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      REQUESTED_URL: ${{ inputs.gateway_url }}
+      DEFAULT_URL: ${{ secrets.JETSON_GATEWAY_URL }}
+      GATEWAY_TOKEN: ${{ secrets.JETSON_GATEWAY_TOKEN }}
+      META_OPERATION: ${{ inputs.operation }}
+      META_PATH: ${{ inputs.relative_path }}
+    steps:
+      - name: Validate route
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${REQUESTED_URL}" || -n "${DEFAULT_URL}" ]] || { echo "::error::Configure JETSON_GATEWAY_URL or provide gateway_url."; exit 1; }
+          [[ -n "${GATEWAY_TOKEN}" ]] || { echo "::error::Configure JETSON_GATEWAY_TOKEN."; exit 1; }
+
+      - name: Reference Jetson science metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="${REQUESTED_URL:-$DEFAULT_URL}"
+          export URL
+          python3 - <<'PY'
+          import json, os, posixpath, sys, urllib.error, urllib.request
+
+          root = "/home/Scales/One-Wave-Science/.one-wave-metadata"
+          op = os.environ["META_OPERATION"]
+          rel = os.environ.get("META_PATH", "").strip().lstrip("/")
+          if rel and (".." in rel.split("/") or rel.startswith("~")):
+              print("invalid relative_path", file=sys.stderr); raise SystemExit(2)
+
+          if op == "list":
+              argv = ["find", root, "-maxdepth", "3", "-type", "f", "-printf", "%P\n"]
+          elif op == "read":
+              if not rel:
+                  print("relative_path is required for read", file=sys.stderr); raise SystemExit(2)
+              target = posixpath.normpath(root + "/" + rel)
+              if not target.startswith(root + "/"):
+                  print("path escaped metadata root", file=sys.stderr); raise SystemExit(2)
+              argv = ["sed", "-n", "1,240p", target]
+          else:
+              print("unsupported operation", file=sys.stderr); raise SystemExit(2)
+
+          args = {
+              "argv": argv,
+              "cwd": "/home/Scales/One-Wave-Science",
+              "timeout": 90,
+              "intention": "Reference canonical Jetson science metadata from the phone-accessible GitHub control plane.",
+              "consequence": "Read/list metadata only; make no Jetson or repository changes.",
+          }
+          payload={"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"terminal_run","arguments":args}}
+          req=urllib.request.Request(
+              os.environ["URL"].rstrip("/")+"/mcp",
+              data=json.dumps(payload).encode(),
+              headers={"Authorization":"Bearer "+os.environ["GATEWAY_TOKEN"],"Content-Type":"application/json"},
+              method="POST")
+          try:
+              with urllib.request.urlopen(req, timeout=105) as response:
+                  envelope=json.load(response)
+          except urllib.error.HTTPError as exc:
+              sys.stderr.write(exc.read().decode("utf-8",errors="replace")); raise SystemExit(1)
+          if "error" in envelope:
+              print(json.dumps(envelope["error"],indent=2),file=sys.stderr); raise SystemExit(1)
+          result=envelope.get("result",{}).get("structuredContent",{})
+          sys.stdout.write(result.get("stdout",""))
+          sys.stderr.write(result.get("stderr",""))
+          print(f"\n[jetson-metadata exit={result.get('exit_code')} cwd={result.get('cwd')}]")
+          raise SystemExit(int(result.get("exit_code",0 if result.get("ok") else 1)))
+          PY

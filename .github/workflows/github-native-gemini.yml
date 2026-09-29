@@ -32,88 +32,222 @@ jobs:
           test -n "$P"
           echo "path=$P" >> "$GITHUB_OUTPUT"
 
-      - name: Ask Gemini with GitHub references
+      - name: Ask Gemini with repository lens and bounded metadata
         env:
           REQUEST_PATH: ${{ steps.req.outputs.path }}
         shell: bash
         run: |
           set -euo pipefail
-          test -n "${GEMINI_API_KEY:-}" || { echo "::error::GEMINI_API_KEY missing"; exit 2; }
           python3 - <<'PY'
-          import json, os, pathlib, urllib.request, urllib.error
+          import datetime
+          import hashlib
+          import json
+          import os
+          import pathlib
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          receipt_path = pathlib.Path("gemini-receipt.json")
+
+          def write_receipt(receipt):
+              receipt_path.write_text(json.dumps(receipt, indent=2) + "\n")
+
+          def fail(request_id, code, message, refs_read=None, metadata_read=None, status=2):
+              receipt = {
+                  "schema": "one-wave-github-gemini-receipt/v2",
+                  "request_id": request_id,
+                  "ok": False,
+                  "route": "github-hosted-runner->Gemini API",
+                  "error_code": code,
+                  "error": message,
+                  "references_read": refs_read or [],
+                  "metadata_read": metadata_read or [],
+              }
+              write_receipt(receipt)
+              print(json.dumps(receipt, indent=2))
+              raise SystemExit(status)
+
+          def fetch_text(url, max_bytes, user_agent):
+              request = urllib.request.Request(url, headers={"User-Agent": user_agent})
+              with urllib.request.urlopen(request, timeout=45) as response:
+                  data = response.read(max_bytes + 1)
+                  content_type = response.headers.get("Content-Type", "")
+              if len(data) > max_bytes:
+                  raise ValueError(f"response exceeded {max_bytes} bytes")
+              return data, content_type
+
+          def validate_public_https(url):
+              parsed = urllib.parse.urlsplit(url)
+              if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
+                  raise ValueError("metadata URL must be public HTTPS without embedded credentials")
+              if parsed.port not in (None, 443):
+                  raise ValueError("metadata URL must use HTTPS port 443")
+              approved_hosts = (
+                  "gwosc.org",
+                  "opendata.cern.ch",
+                  "hepdata.net",
+                  "data.nasa.gov",
+                  "data.nist.gov",
+                  "zenodo.org",
+                  "api.crossref.org",
+                  "raw.githubusercontent.com",
+              )
+              host = parsed.hostname.lower().rstrip(".")
+              if not any(host == approved or host.endswith("." + approved) for approved in approved_hosts):
+                  raise ValueError("metadata host is not on the approved public-science allowlist")
 
           request_path = pathlib.Path(os.environ["REQUEST_PATH"])
-          req = json.loads(request_path.read_text())
-          assert req["schema"] == "one-wave-github-gemini/v1"
-          rid = req["id"]
-          question = req["question"]
-          model = req.get("model", "gemini-3.5-flash")
-          refs = req.get("references", [])
-          max_chars = int(req.get("max_reference_chars", 120000))
+          request = json.loads(request_path.read_text())
+          request_id = request.get("id", "UNKNOWN")
+          if request.get("schema") not in {"one-wave-github-gemini/v1", "one-wave-github-gemini/v2"}:
+              fail(request_id, "INVALID_SCHEMA", "unsupported Gemini request schema")
+          question = str(request.get("question", "")).strip()
+          if not question:
+              fail(request_id, "EMPTY_QUESTION", "question is required")
+
+          model = request.get("model", "gemini-3.5-flash")
+          max_reference_chars = min(int(request.get("max_reference_chars", 120000)), 200000)
+          numeric_required = bool(request.get("numeric_evidence_required", False))
+          metadata_requests = request.get("metadata_requests", [])
+          if metadata_requests and not numeric_required:
+              fail(request_id, "METADATA_NOT_DECLARED", "metadata_requests require numeric_evidence_required=true")
+          if numeric_required and not metadata_requests:
+              fail(request_id, "METADATA_REQUIRED", "numeric evidence was requested but metadata_requests is empty")
+          if len(metadata_requests) > 4:
+              fail(request_id, "TOO_MANY_METADATA_SOURCES", "at most four bounded metadata sources are allowed")
+
+          canonical = {
+              "repo": "One-Wave-Universe/One-Wave-Science",
+              "ref": "main",
+              "path": "AI_CANONICAL_START_HERE.md",
+          }
+          references = [canonical]
+          for reference in request.get("references", []):
+              normalized = {
+                  "repo": reference["repo"],
+                  "ref": reference.get("ref", "main"),
+                  "path": reference["path"].lstrip("/"),
+              }
+              if normalized not in references:
+                  references.append(normalized)
 
           chunks = []
-          refs_read = []
-          total = 0
-          for ref in refs:
-              repo = ref["repo"]
-              git_ref = ref.get("ref", "main")
-              path = ref["path"].lstrip("/")
+          references_read = []
+          total_chars = 0
+          for reference in references:
+              repo = reference["repo"]
+              git_ref = reference["ref"]
+              path = reference["path"]
               url = f"https://raw.githubusercontent.com/{repo}/{git_ref}/{path}"
-              r = urllib.request.Request(url, headers={"User-Agent":"one-wave-github-gemini-bridge/1"})
               try:
-                  with urllib.request.urlopen(r, timeout=30) as resp:
-                      data = resp.read().decode("utf-8", errors="replace")
-              except Exception as e:
-                  chunks.append(f"REFERENCE FAILED: {repo}@{git_ref}:{path}: {e}")
+                  raw, content_type = fetch_text(url, 500000, "one-wave-github-gemini-bridge/2")
+              except Exception as error:
+                  chunks.append(f"REFERENCE FAILED: {repo}@{git_ref}:{path}: {error}")
                   continue
-              remain = max_chars-total
-              if remain <= 0: break
-              data = data[:remain]
-              total += len(data)
-              refs_read.append({"repo":repo,"ref":git_ref,"path":path,"chars":len(data)})
-              chunks.append(f"--- REFERENCE {repo}@{git_ref}:{path} ---\n{data}")
+              remaining = max_reference_chars - total_chars
+              if remaining <= 0:
+                  break
+              text = raw.decode("utf-8", errors="replace")[:remaining]
+              total_chars += len(text)
+              record = {
+                  "repo": repo,
+                  "ref": git_ref,
+                  "path": path,
+                  "chars": len(text),
+                  "sha256": hashlib.sha256(raw).hexdigest(),
+                  "content_type": content_type,
+              }
+              references_read.append(record)
+              chunks.append(f"--- REPOSITORY LENS {repo}@{git_ref}:{path} ---\n{text}")
+
+          if not any(item["path"] == "AI_CANONICAL_START_HERE.md" for item in references_read):
+              fail(request_id, "CANONICAL_LENS_UNAVAILABLE", "One-Wave-Science canonical start file could not be read", references_read)
+
+          metadata_read = []
+          if numeric_required:
+              for item in metadata_requests:
+                  provider = str(item.get("provider", "unspecified")).strip()
+                  purpose = str(item.get("purpose", "")).strip()
+                  url = str(item.get("url", "")).strip()
+                  max_bytes = min(max(int(item.get("max_bytes", 250000)), 1), 1000000)
+                  try:
+                      validate_public_https(url)
+                      raw, content_type = fetch_text(url, max_bytes, "one-wave-science-metadata-lens/1")
+                  except Exception as error:
+                      fail(request_id, "METADATA_FETCH_FAILED", f"{provider}: {error}", references_read, metadata_read)
+                  retrieved_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+                  record = {
+                      "provider": provider,
+                      "purpose": purpose,
+                      "url": url,
+                      "retrieved_at": retrieved_at,
+                      "bytes": len(raw),
+                      "sha256": hashlib.sha256(raw).hexdigest(),
+                      "content_type": content_type,
+                  }
+                  metadata_read.append(record)
+                  text = raw.decode("utf-8", errors="replace")
+                  chunks.append(
+                      "--- BOUNDED SCIENCE METADATA ---\n"
+                      + json.dumps(record, indent=2)
+                      + "\n--- CONTENT ---\n"
+                      + text
+                  )
+
+          if not os.environ.get("GEMINI_API_KEY"):
+              fail(request_id, "GEMINI_API_KEY_MISSING", "configure the GitHub Actions GEMINI_API_KEY secret", references_read, metadata_read)
 
           prompt = (
-              "You are Gemini participating in a repository-reference review. "
-              "Answer the user's question using the supplied GitHub reference material when relevant. "
-              "Explicitly say which supplied references you actually used. "
-              "Do not claim you inspected anything not present below.\n\n"
-              f"REQUEST_ID: {rid}\nQUESTION: {question}\n\n"
+              "You are Gemini participating in a One-Wave repository-reference review. "
+              "Treat the supplied One-Wave-Science files as the interpretation lens, not as proof. "
+              "Use bounded science metadata only for measured numeric facts. "
+              "State which repository references and metadata sources you actually used. "
+              "Preserve provider identifiers, URLs, units, calibration/quality qualifiers, and uncertainty. "
+              "Label conclusions ESTABLISHED, TESTED, UNVERIFIED, HYPOTHESIS, ASSUMPTION, FAILED, or BLOCKED. "
+              "Do not claim you inspected anything not supplied and do not turn metadata retrieval into automatic support.\n\n"
+              f"REQUEST_ID: {request_id}\nQUESTION: {question}\n"
+              f"NUMERIC_EVIDENCE_REQUIRED: {numeric_required}\n\n"
               + "\n\n".join(chunks)
           )
-          payload = json.dumps({"contents":[{"role":"user","parts":[{"text":prompt}]}]}).encode()
+          payload = json.dumps({"contents": [{"role": "user", "parts": [{"text": prompt}]}]}).encode()
           api = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-          http = urllib.request.Request(api, data=payload, method="POST",
-              headers={"Content-Type":"application/json","x-goog-api-key":os.environ["GEMINI_API_KEY"]})
+          http = urllib.request.Request(
+              api,
+              data=payload,
+              method="POST",
+              headers={"Content-Type": "application/json", "x-goog-api-key": os.environ["GEMINI_API_KEY"]},
+          )
           try:
-              with urllib.request.urlopen(http, timeout=180) as resp:
-                  raw = json.load(resp)
-          except urllib.error.HTTPError as e:
-              body=e.read().decode(errors="replace")
-              pathlib.Path("gemini-receipt.json").write_text(json.dumps({
-                  "schema":"one-wave-github-gemini-receipt/v1","request_id":rid,
-                  "ok":False,"jetson_used":False,"error":body,"references_read":refs_read
-              },indent=2))
-              raise
-          parts=[]
-          for cand in raw.get("candidates",[]):
-              for part in cand.get("content",{}).get("parts",[]):
-                  if "text" in part: parts.append(part["text"])
-          answer="\n".join(parts).strip()
-          receipt={
-              "schema":"one-wave-github-gemini-receipt/v1",
-              "request_id":rid,
-              "ok":bool(answer),
-              "route":"github-hosted-runner->Gemini API",
-              "model":model,
-              "jetson_used":False,
-              "references_read":refs_read,
-              "answer":answer,
-              "usage":raw.get("usageMetadata",{}),
+              with urllib.request.urlopen(http, timeout=180) as response:
+                  raw_response = json.load(response)
+          except urllib.error.HTTPError as error:
+              body = error.read().decode(errors="replace")
+              fail(request_id, "GEMINI_HTTP_ERROR", body, references_read, metadata_read, status=1)
+
+          parts = []
+          for candidate in raw_response.get("candidates", []):
+              for part in candidate.get("content", {}).get("parts", []):
+                  if "text" in part:
+                      parts.append(part["text"])
+          answer = "\n".join(parts).strip()
+          receipt = {
+              "schema": "one-wave-github-gemini-receipt/v2",
+              "request_id": request_id,
+              "ok": bool(answer),
+              "route": "github-hosted-runner->Gemini API",
+              "model": model,
+              "jetson_used": False,
+              "numeric_evidence_required": numeric_required,
+              "references_read": references_read,
+              "metadata_read": metadata_read,
+              "answer": answer,
+              "usage": raw_response.get("usageMetadata", {}),
           }
-          pathlib.Path("gemini-receipt.json").write_text(json.dumps(receipt,indent=2))
-          print(json.dumps(receipt,indent=2))
-          if not answer: raise SystemExit(5)
+          write_receipt(receipt)
+          print(json.dumps(receipt, indent=2))
+          if not answer:
+              raise SystemExit(5)
           PY
 
       - name: Upload Gemini receipt

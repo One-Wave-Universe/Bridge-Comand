@@ -1,0 +1,20 @@
+name: Parser Relay Validate
+on:
+  push:
+    paths:
+      - 'hive-pipe/parser_relay.py'
+      - 'hive-pipe/test_parser_relay.py'
+      - '.github/workflows/parser-relay-validate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax
+        run: python3 -m py_compile hive-pipe/parser_relay.py hive-pipe/test_parser_relay.py
+      - name: Two-state relay tests
+        run: python3 hive-pipe/test_parser_relay.py

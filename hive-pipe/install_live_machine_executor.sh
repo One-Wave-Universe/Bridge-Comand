@@ -13,14 +13,14 @@ if git -C "$RUNTIME" remote get-url transport >/dev/null 2>&1; then git -C "$RUN
 git -C "$RUNTIME" fetch transport machine-executor
 cat >"$UNIT_DIR/one-wave-live-machine-executor.service" <<EOF
 [Unit]
-Description=One-Wave independent live machine execution route
+Description=One-Wave two-state terminal relay
 After=network-online.target
 Wants=network-online.target
 StartLimitIntervalSec=0
 [Service]
 Type=simple
 WorkingDirectory=$RUNTIME
-ExecStart=/usr/bin/python3 $HERE/live_machine_executor.py --runtime $RUNTIME --watch
+ExecStart=/usr/bin/python3 $HERE/two_state_terminal_relay.py --runtime $RUNTIME --watch
 Restart=always
 RestartSec=5
 NoNewPrivileges=true

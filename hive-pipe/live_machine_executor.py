@@ -44,9 +44,7 @@ def execute(runtime):
  import sys
  sys.path.insert(0,str(HERE))
  import terminal_parser
- result=terminal_parser.run(argv,cwd=req.get("cwd"),timeout=req.get("timeout",120),
-                            intention=req.get("intention","machine executor request"),
-                            consequence=req.get("consequence","return bounded receipt"))
+ result=terminal_parser.run(argv,cwd=req.get("cwd"),timeout=req.get("timeout",120))
  receipt={"schema":"one-wave-machine-executor-receipt/v1","id":rid,"ok":result.get("ok",False),
           "exit_code":result.get("exit_code"),"stdout":result.get("stdout",""),
           "stderr":result.get("stderr",""),"cwd":result.get("cwd"),"parser_contract":result.get("parser_contract")}

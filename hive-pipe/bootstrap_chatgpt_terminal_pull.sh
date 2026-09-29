@@ -21,6 +21,7 @@ ONE_WAVE_PROJECT_ROOT="$PROJECT_ROOT" bash "$BRIDGE_ROOT/hive-pipe/install_chatg
 bash "$BRIDGE_ROOT/hive-pipe/install_persistent_relay.sh" || true
 bash "$BRIDGE_ROOT/hive-pipe/install_bridge_lattice_watchdog.sh"
 bash "$BRIDGE_ROOT/hive-pipe/install_route_goblin.sh"
+ONE_WAVE_PROJECT_ROOT="$PROJECT_ROOT" bash "$BRIDGE_ROOT/hive-pipe/install_independent_bootstrap.sh"
 
 python3 "$BRIDGE_ROOT/hive-pipe/bridge_lattice_watchdog.py" || true
 echo BRIDGE_LATTICE_BOOTSTRAP_COMPLETE

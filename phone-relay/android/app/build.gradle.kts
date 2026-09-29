@@ -6,11 +6,11 @@ android {
     namespace = "org.onewave.relay"
     compileSdk = 35
     defaultConfig {
-        applicationId = "org.onewave.relay"
+        applicationId = "org.onewave.aihub"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "0.4.0"
+        versionCode = 5
+        versionName = "0.4.1"
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }

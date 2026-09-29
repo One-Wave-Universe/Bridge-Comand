@@ -1,0 +1,35 @@
+name: Build One-Wave Firefox AI Hub
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'firefox-ai-hub/**'
+      - '.github/workflows/build-firefox-ai-hub.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate extension files
+        run: |
+          python3 -m json.tool firefox-ai-hub/manifest.json >/dev/null
+          node --check firefox-ai-hub/background.js
+          node --check firefox-ai-hub/popup.js
+      - name: Package XPI
+        run: |
+          cd firefox-ai-hub
+          zip -r ../one-wave-ai-hub-v0.1.xpi manifest.json background.js popup.html popup.js popup.css README.md
+          cd ..
+          sha256sum one-wave-ai-hub-v0.1.xpi | tee one-wave-ai-hub-v0.1.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: one-wave-firefox-ai-hub
+          path: |
+            one-wave-ai-hub-v0.1.xpi
+            one-wave-ai-hub-v0.1.sha256
+          if-no-files-found: error

@@ -1,0 +1,125 @@
+name: GitHub Native Gemini Bridge
+
+on:
+  push:
+    paths:
+      - ".gemini-dispatch/request-*.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-native-gemini
+  cancel-in-progress: false
+
+jobs:
+  ask:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Select request
+        id: req
+        shell: bash
+        run: |
+          set -euo pipefail
+          P="$(git diff --name-only HEAD^ HEAD -- '.gemini-dispatch/request-*.json' | tail -n1)"
+          test -n "$P"
+          echo "path=$P" >> "$GITHUB_OUTPUT"
+
+      - name: Ask Gemini with GitHub references
+        env:
+          REQUEST_PATH: ${{ steps.req.outputs.path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${GEMINI_API_KEY:-}" || { echo "::error::GEMINI_API_KEY missing"; exit 2; }
+          python3 - <<'PY'
+          import json, os, pathlib, urllib.request, urllib.error
+
+          request_path = pathlib.Path(os.environ["REQUEST_PATH"])
+          req = json.loads(request_path.read_text())
+          assert req["schema"] == "one-wave-github-gemini/v1"
+          rid = req["id"]
+          question = req["question"]
+          model = req.get("model", "gemini-3.5-flash")
+          refs = req.get("references", [])
+          max_chars = int(req.get("max_reference_chars", 120000))
+
+          chunks = []
+          refs_read = []
+          total = 0
+          for ref in refs:
+              repo = ref["repo"]
+              git_ref = ref.get("ref", "main")
+              path = ref["path"].lstrip("/")
+              url = f"https://raw.githubusercontent.com/{repo}/{git_ref}/{path}"
+              r = urllib.request.Request(url, headers={"User-Agent":"one-wave-github-gemini-bridge/1"})
+              try:
+                  with urllib.request.urlopen(r, timeout=30) as resp:
+                      data = resp.read().decode("utf-8", errors="replace")
+              except Exception as e:
+                  chunks.append(f"REFERENCE FAILED: {repo}@{git_ref}:{path}: {e}")
+                  continue
+              remain = max_chars-total
+              if remain <= 0: break
+              data = data[:remain]
+              total += len(data)
+              refs_read.append({"repo":repo,"ref":git_ref,"path":path,"chars":len(data)})
+              chunks.append(f"--- REFERENCE {repo}@{git_ref}:{path} ---\n{data}")
+
+          prompt = (
+              "You are Gemini participating in a repository-reference review. "
+              "Answer the user's question using the supplied GitHub reference material when relevant. "
+              "Explicitly say which supplied references you actually used. "
+              "Do not claim you inspected anything not present below.\n\n"
+              f"REQUEST_ID: {rid}\nQUESTION: {question}\n\n"
+              + "\n\n".join(chunks)
+          )
+          payload = json.dumps({"contents":[{"role":"user","parts":[{"text":prompt}]}]}).encode()
+          api = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+          http = urllib.request.Request(api, data=payload, method="POST",
+              headers={"Content-Type":"application/json","x-goog-api-key":os.environ["GEMINI_API_KEY"]})
+          try:
+              with urllib.request.urlopen(http, timeout=180) as resp:
+                  raw = json.load(resp)
+          except urllib.error.HTTPError as e:
+              body=e.read().decode(errors="replace")
+              pathlib.Path("gemini-receipt.json").write_text(json.dumps({
+                  "schema":"one-wave-github-gemini-receipt/v1","request_id":rid,
+                  "ok":False,"jetson_used":False,"error":body,"references_read":refs_read
+              },indent=2))
+              raise
+          parts=[]
+          for cand in raw.get("candidates",[]):
+              for part in cand.get("content",{}).get("parts",[]):
+                  if "text" in part: parts.append(part["text"])
+          answer="\n".join(parts).strip()
+          receipt={
+              "schema":"one-wave-github-gemini-receipt/v1",
+              "request_id":rid,
+              "ok":bool(answer),
+              "route":"github-hosted-runner->Gemini API",
+              "model":model,
+              "jetson_used":False,
+              "references_read":refs_read,
+              "answer":answer,
+              "usage":raw.get("usageMetadata",{}),
+          }
+          pathlib.Path("gemini-receipt.json").write_text(json.dumps(receipt,indent=2))
+          print(json.dumps(receipt,indent=2))
+          if not answer: raise SystemExit(5)
+          PY
+
+      - name: Upload Gemini receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-native-gemini-receipt
+          if-no-files-found: warn
+          path: gemini-receipt.json

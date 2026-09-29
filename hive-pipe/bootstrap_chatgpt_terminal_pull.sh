@@ -3,6 +3,10 @@ set -euo pipefail
 
 # Bootstrap from Bridge-Comand while leaving the active Science checkout alone.
 BRIDGE_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+if [[ -d "$BRIDGE_ROOT/.git" ]]; then
+  git -C "$BRIDGE_ROOT" fetch origin main
+  git -C "$BRIDGE_ROOT" checkout --detach origin/main
+fi
 PROJECT_ROOT="${ONE_WAVE_PROJECT_ROOT:-}"
 if [[ -z "$PROJECT_ROOT" ]]; then
   # Prefer the canonical Science checkout; fall back to current repo only when

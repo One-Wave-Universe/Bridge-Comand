@@ -10,7 +10,8 @@ Read, in order:
 5. `PHONE_BRIDGE_PROFILE.md` when phone-originated
 6. `PHONE_GITHUB_JETSON.md` for immediate phone→machine work
 7. `GEMINI_OPTIONAL_EXECUTION_PROTOCOL.md` for Gemini communication
-8. `chatgpt-plugin/one-wave-hive-pipe/skills/bridge-control/SKILL.md`
+8. `skills/gemini-communication/SKILL.md` before sending/validating Gemini work
+9. `chatgpt-plugin/one-wave-hive-pipe/skills/bridge-control/SKILL.md`
 
 ## AI route behavior
 

@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>One-Wave AI Hub</title><link rel="stylesheet" href="popup.css"></head>
+<body>
+  <h2>One-Wave AI Hub</h2>
+  <p class="small">Configure providers here, then close this popup. The background router remains available while Firefox is running.</p>
+  <label>Default provider
+    <select id="defaultProvider"><option value="gemini">Gemini</option></select>
+  </label>
+  <section>
+    <h3>Gemini</h3>
+    <label><input id="geminiEnabled" type="checkbox"> Enabled</label>
+    <label>Model <input id="geminiModel" value="gemini-3.8-flash"></label>
+    <label>API key <input id="geminiKey" type="password" autocomplete="off"></label>
+    <div class="row"><button id="save">Save</button><button id="test">Test Gemini</button></div>
+  </section>
+  <pre id="status"></pre>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -17,23 +17,26 @@ def sh(*a,check=False):
 def git(*a):
  return sh("git",*a)
 
-def read_branch(path):
- p=git("show",f"transport/{BRANCH}:{path}")
+def git_runtime(runtime,*a):
+ return sh("git","-C",str(runtime),*a)
+
+def read_branch(runtime,path):
+ p=git_runtime(runtime,"show",f"transport/{BRANCH}:{path}")
  if p.returncode: raise RuntimeError(p.stderr.strip())
  return json.loads(p.stdout)
 
 def publish(runtime,result):
- git("-C",str(runtime),"checkout","-B","machine-executor-runtime",f"transport/{BRANCH}")
+ git_runtime(runtime,"checkout","-B","machine-executor-runtime",f"transport/{BRANCH}")
  (runtime/".machine-executor").mkdir(exist_ok=True)
  (runtime/RES).write_text(json.dumps(result,indent=2)+"\n")
- git("-C",str(runtime),"add",RES)
- git("-C",str(runtime),"commit","-m",f"machine receipt: {result['id']}")
- p=git("-C",str(runtime),"push","transport","HEAD:"+BRANCH)
+ git_runtime(runtime,"add",RES)
+ git_runtime(runtime,"-c","user.name=One-Wave Jetson","-c","user.email=jetson@localhost","commit","-m",f"machine receipt: {result['id']}")
+ p=git_runtime(runtime,"push","transport","HEAD:"+BRANCH)
  if p.returncode: raise RuntimeError(p.stderr.strip())
 
 def execute(runtime):
- git("-C",str(runtime),"fetch","transport",BRANCH)
- req=read_branch(REQ)
+ git_runtime(runtime,"fetch","transport",BRANCH)
+ req=read_branch(runtime,REQ)
  STATE.mkdir(parents=True,exist_ok=True)
  seen=STATE/"last-id"
  if seen.exists() and seen.read_text().strip()==req.get("id"): return False

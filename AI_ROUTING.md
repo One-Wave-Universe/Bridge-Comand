@@ -9,7 +9,8 @@ Read, in order:
 4. `METADATA_AND_HANDOFF_CONTRACT.md`
 5. `PHONE_BRIDGE_PROFILE.md` when phone-originated
 6. `PHONE_GITHUB_JETSON.md` for immediate phone→machine work
-7. `chatgpt-plugin/one-wave-hive-pipe/skills/bridge-control/SKILL.md`
+7. `GEMINI_OPTIONAL_EXECUTION_PROTOCOL.md` for Gemini communication
+8. `chatgpt-plugin/one-wave-hive-pipe/skills/bridge-control/SKILL.md`
 
 ## AI route behavior
 
@@ -26,5 +27,7 @@ For every cross-device task:
 - do not claim execution until the final target returns a matching receipt.
 
 Phone, laptop and Jetson are peers in the routing lattice. Laptop and Jetson may be execution workers. Phone is primarily a control/client endpoint but may originate files/sensor captures with provenance.
+
+Gemini communication is capability-routed, not Jetson-dependent. Reference-only and public-data Gemini work must proceed without Jetson; Jetson is an optional worker and is required only for explicitly machine-local work. See `GEMINI_OPTIONAL_EXECUTION_PROTOCOL.md`.
 
 Never expose tokens, weaken authentication, or turn “open lattice” into unauthenticated shell access.

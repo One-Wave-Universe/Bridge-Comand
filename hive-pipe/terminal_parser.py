@@ -21,7 +21,7 @@ import tempfile
 import time
 from typing import Any
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+REPO_ROOT = Path(os.environ.get("ONE_WAVE_PROJECT_ROOT", str(Path(__file__).resolve().parent.parent))).expanduser().resolve()
 HOME = Path.home().resolve()
 MAX_ARGS = 128
 MAX_ARG_LEN = 4096

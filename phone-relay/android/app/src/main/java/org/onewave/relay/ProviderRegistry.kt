@@ -6,6 +6,7 @@ object ProviderRegistry {
   Provider("openai","OpenAI","OPENAI_API_KEY",""),
   Provider("anthropic","Claude","ANTHROPIC_API_KEY",""),
   Provider("xai","Grok","XAI_API_KEY",""),
-  Provider("deepseek","DeepSeek","DEEPSEEK_API_KEY","")
+  Provider("deepseek","DeepSeek","DEEPSEEK_API_KEY",""),
+  Provider("github","GitHub control lane","GITHUB_TOKEN","")
  )
 }

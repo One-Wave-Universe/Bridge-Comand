@@ -1,0 +1,31 @@
+name: Desktop Commander Recovery
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.desktop-commander-recovery/trigger-*'
+jobs:
+  recover:
+    runs-on: self-hosted
+    timeout-minutes: 5
+    steps:
+      - name: Discover and restart existing Desktop Commander remote process
+        shell: bash
+        run: |
+          set -uo pipefail
+          echo "HOST=$(hostname)"
+          echo "USER=$(id -un)"
+          echo "NODE=$(node --version 2>/dev/null || true)"
+          echo "=== processes before ==="
+          ps -ef | grep -Ei 'desktop.?commander|remote.?mcp' | grep -v grep || true
+          echo "=== user services ==="
+          systemctl --user --no-pager --plain list-units --type=service --all 2>/dev/null | grep -Ei 'desktop|commander|mcp' || true
+          echo "=== candidate service restart ==="
+          mapfile -t units < <(systemctl --user --no-legend --plain list-unit-files 2>/dev/null | awk '{print $1}' | grep -Ei 'desktop.*commander|commander.*mcp|remote.*mcp' || true)
+          for u in "${units[@]}"; do
+            echo "restart $u"
+            systemctl --user restart "$u" || true
+          done
+          sleep 5
+          echo "=== processes after ==="
+          ps -ef | grep -Ei 'desktop.?commander|remote.?mcp' | grep -v grep || true

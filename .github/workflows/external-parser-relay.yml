@@ -1,0 +1,55 @@
+name: External Parser Relay
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.relay/request.json'
+      - '.github/workflows/external-parser-relay.yml'
+permissions:
+  contents: read
+jobs:
+  relay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      GATEWAY_URL: ${{ secrets.JETSON_GATEWAY_URL }}
+      GATEWAY_TOKEN: ${{ secrets.JETSON_GATEWAY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse and relay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os,urllib.request,urllib.error
+          from pathlib import Path
+          p=Path(".relay/request.json")
+          if not p.exists():
+              print(json.dumps({"schema":"one-wave-external-relay/v1","phase":"VOID","reason":"NO_REQUEST"}))
+              raise SystemExit(0)
+          x=json.loads(p.read_text())
+          assert isinstance(x.get("id"),str) and x["id"]
+          assert isinstance(x.get("argv"),list) and x["argv"] and all(isinstance(v,str) and v for v in x["argv"])
+          for k in ("intention","consequence"): assert isinstance(x.get(k),str) and x[k]
+          url=os.getenv("GATEWAY_URL","").strip(); token=os.getenv("GATEWAY_TOKEN","").strip()
+          if not url or not token:
+              print(json.dumps({"schema":"one-wave-external-relay/v1","id":x["id"],"phase":"VOID","hold":True,
+                                "reason":"GATEWAY_CREDENTIALS_UNAVAILABLE","next":"durable request remains authoritative"}))
+              raise SystemExit(0)
+          args={k:x[k] for k in ("argv","intention","consequence")}
+          if x.get("cwd"): args["cwd"]=x["cwd"]
+          args["timeout"]=min(int(x.get("timeout",120)),300)
+          body={"jsonrpc":"2.0","id":x["id"],"method":"tools/call","params":{"name":"terminal_run","arguments":args}}
+          req=urllib.request.Request(url.rstrip("/")+"/mcp",data=json.dumps(body).encode(),
+              headers={"Authorization":"Bearer "+token,"Content-Type":"application/json"},method="POST")
+          try:
+              with urllib.request.urlopen(req,timeout=args["timeout"]+15) as r: env=json.load(r)
+          except Exception as e:
+              print(json.dumps({"schema":"one-wave-external-relay/v1","id":x["id"],"phase":"VOID","hold":True,
+                                "reason":"GATEWAY_UNREACHABLE","error_type":type(e).__name__}))
+              raise SystemExit(0)
+          z=env.get("result",{}).get("structuredContent",{})
+          print(json.dumps({"schema":"one-wave-external-relay/v1","id":x["id"],"phase":"FIELD",
+                            "ok":z.get("ok",False),"exit_code":z.get("exit_code"),"stdout":z.get("stdout",""),
+                            "stderr":z.get("stderr",""),"cwd":z.get("cwd")}))
+          PY

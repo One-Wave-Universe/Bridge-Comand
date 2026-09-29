@@ -1,0 +1,19 @@
+name: Live Machine Executor Validate
+on:
+  push:
+    paths:
+      - 'hive-pipe/live_machine_executor.py'
+      - 'hive-pipe/install_live_machine_executor.sh'
+      - 'hive-pipe/test_live_machine_executor.py'
+      - '.github/workflows/live-machine-executor-validate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m py_compile hive-pipe/live_machine_executor.py hive-pipe/test_live_machine_executor.py
+      - run: bash -n hive-pipe/install_live_machine_executor.sh
+      - run: python3 hive-pipe/test_live_machine_executor.py

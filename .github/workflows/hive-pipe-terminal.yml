@@ -41,7 +41,8 @@ jobs:
             hive-pipe/bridge_doctor.py \
             hive-pipe/bridge_lattice_watchdog.py \
             hive-pipe/deepseek_bridge.py \
-            hive-pipe/deepseek_web_bridge.py
+            hive-pipe/deepseek_web_bridge.py \
+            hive-pipe/two_state_terminal_relay.py
       - name: Hive Pipe contract tests\n        run: |\n          set -euo pipefail\n          for t in hive-pipe/test_*.py; do [ -e \"$t\" ] || continue; python3 \"$t\"; done\n      - name: Unified bridge contracts
         run: python3 hive-pipe/bridge_doctor.py --profile ci
       - name: Perplexity first-class client config

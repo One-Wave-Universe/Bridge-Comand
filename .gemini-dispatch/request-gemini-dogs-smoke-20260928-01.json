@@ -1,0 +1,14 @@
+{
+  "schema": "one-wave-github-gemini/v1",
+  "id": "gemini-dogs-smoke-20260928-01",
+  "question": "Briefly answer: what are dogs? Also confirm the request ID you received and name the supplied GitHub reference you inspected.",
+  "model": "gemini-3.5-flash",
+  "references": [
+    {
+      "repo": "One-Wave-Universe/Bridge-Comand",
+      "ref": "main",
+      "path": "GEMINI_OPTIONAL_EXECUTION_PROTOCOL.md"
+    }
+  ],
+  "max_reference_chars": 30000
+}

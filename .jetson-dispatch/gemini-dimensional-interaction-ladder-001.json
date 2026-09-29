@@ -1,0 +1,8 @@
+{
+  "schema": "one-wave-jetson-gemini-task/v1",
+  "id": "jetson-gemini-dimensional-interaction-ladder-001",
+  "mode": "review",
+  "task_path": "tasks/gemini/dimensional-interaction-ladder-001.md",
+  "science_commit": "ff3b583ffbca0d902809b3864517d9b43c25e1b3",
+  "created_for": "repo-first adversarial dimensional cosmology review on Jetson"
+}

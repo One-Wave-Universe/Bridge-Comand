@@ -1,0 +1,6 @@
+{
+  "schema": "one-wave-live-metadata/v1",
+  "id": "gwosc-live-20260929-01",
+  "operation": "live-query",
+  "metadata_url": "https://gwosc.org/api/v2/event-versions/"
+}

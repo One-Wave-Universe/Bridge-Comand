@@ -1,6 +1,9 @@
 name: Jetson Science Metadata
 
 on:
+  push:
+    paths:
+      - ".metadata-dispatch/request-*.json"
   workflow_dispatch:
     inputs:
       operation:
@@ -46,6 +49,7 @@ jobs:
       META_OPERATION: ${{ inputs.operation }}
       META_PATH: ${{ inputs.relative_path }}
       META_URL: ${{ inputs.metadata_url }}
+      EVENT_NAME: ${{ github.event_name }}
     steps:
       - name: Validate route
         shell: bash
@@ -64,8 +68,16 @@ jobs:
           import json, os, posixpath, sys, urllib.error, urllib.request
 
           root = "/home/Scales/One-Wave-Science/.one-wave-metadata"
-          op = os.environ["META_OPERATION"]
+          op = os.environ.get("META_OPERATION","")
           rel = os.environ.get("META_PATH", "").strip().lstrip("/")
+          if os.environ.get("EVENT_NAME") == "push":
+              import glob
+              files=sorted(glob.glob(".metadata-dispatch/request-*.json"))
+              if not files:
+                  print("no metadata dispatch request",file=sys.stderr); raise SystemExit(2)
+              x=json.load(open(files[-1]))
+              op=x.get("operation","live-query")
+              os.environ["META_URL"]=x.get("metadata_url","")
           if rel and (".." in rel.split("/") or rel.startswith("~")):
               print("invalid relative_path", file=sys.stderr); raise SystemExit(2)
 

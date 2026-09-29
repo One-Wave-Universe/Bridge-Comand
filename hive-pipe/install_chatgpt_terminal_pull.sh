@@ -1,64 +1,52 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# This installer intentionally does not merge, reset, or modify the user's active
-# One-Wave-Science checkout. It creates a private runtime clone for bridge code.
-SOURCE_REPO="${ONE_WAVE_PROJECT_ROOT:-}"
-if [[ -z "$SOURCE_REPO" ]]; then
-  candidate="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-  if [[ -n "$candidate" ]] && git -C "$candidate" remote get-url origin 2>/dev/null | grep -q 'One-Wave-Science'; then
-    SOURCE_REPO="$candidate"
-  fi
+HERE="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+BRIDGE_ROOT="$(CDPATH= cd -- "$HERE/.." && pwd)"
+
+if [[ ! -d "$BRIDGE_ROOT/.git" ]]; then
+  echo "Run this installer from the canonical Bridge-Comand checkout." >&2
+  exit 2
 fi
-if [[ -z "$SOURCE_REPO" ]]; then
-  for candidate in "$HOME/One-Wave-Science" "$HOME/One_Wave_Science" "/home/Scales/One-Wave-Science"; do
+case "$(git -C "$BRIDGE_ROOT" remote get-url origin 2>/dev/null || true)" in
+  *One-Wave-Universe/Bridge-Comand*) ;;
+  *) echo "Unexpected Bridge-Comand origin." >&2; exit 2 ;;
+esac
+
+SCIENCE_ROOT="${ONE_WAVE_PROJECT_ROOT:-}"
+if [[ -z "$SCIENCE_ROOT" ]]; then
+  for candidate in \
+    "$HOME/One-Wave-Science" \
+    "$HOME/Downloads/One-Wave-Science" \
+    "/home/Scales/One-Wave-Science"
+  do
     if [[ -d "$candidate/.git" ]] && git -C "$candidate" remote get-url origin 2>/dev/null | grep -q 'One-Wave-Science'; then
-      SOURCE_REPO="$candidate"
+      SCIENCE_ROOT="$candidate"
       break
     fi
   done
 fi
-if [[ -z "$SOURCE_REPO" || ! -d "$SOURCE_REPO/.git" ]]; then
+if [[ -z "$SCIENCE_ROOT" || ! -d "$SCIENCE_ROOT/.git" ]]; then
   echo "One-Wave-Science checkout not found; set ONE_WAVE_PROJECT_ROOT." >&2
   exit 2
 fi
-SOURCE_REPO="$(cd "$SOURCE_REPO" && pwd)"
+SCIENCE_ROOT="$(CDPATH= cd -- "$SCIENCE_ROOT" && pwd)"
+TRANSPORT_URL="$(git -C "$SCIENCE_ROOT" remote get-url origin)"
 
-# Bridge code and command transport are intentionally separate after the repo
-# migration. Code comes from Bridge-Comand; requests/results remain on the
-# One-Wave-Science chatgpt-terminal branches.
-TRANSPORT_URL="$(git -C "$SOURCE_REPO" remote get-url origin)"
-BRIDGE_REPO_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-BRIDGE_URL="${ONE_WAVE_BRIDGE_REMOTE_URL:-$(git -C "$BRIDGE_REPO_ROOT" remote get-url origin 2>/dev/null || true)}"
-if [[ -z "$BRIDGE_URL" ]]; then
-  BRIDGE_URL="https://github.com/One-Wave-Universe/Bridge-Comand.git"
-fi
-RUNTIME_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/one-wave-chatgpt-terminal-runtime"
-STATE_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}/one-wave-chatgpt-terminal"
-EXTERNAL_WORK_ROOT="${ONE_WAVE_EXTERNAL_WORK:-$HOME/One-Wave-External-Work}"
-SERVICE_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
-SERVICE_PATH="$SERVICE_DIR/one-wave-chatgpt-terminal-pull.service"
-
-mkdir -p "$(dirname "$RUNTIME_ROOT")" "$STATE_ROOT" "$SERVICE_DIR"
-mkdir -p "$EXTERNAL_WORK_ROOT/inbox" "$EXTERNAL_WORK_ROOT/work" "$EXTERNAL_WORK_ROOT/outbox"
-
-if [[ ! -d "$RUNTIME_ROOT/.git" ]]; then
-  git clone --no-checkout "$BRIDGE_URL" "$RUNTIME_ROOT"
-fi
-
-git -C "$RUNTIME_ROOT" remote set-url origin "$BRIDGE_URL"
-git -C "$RUNTIME_ROOT" fetch --prune origin main
-git -C "$RUNTIME_ROOT" checkout --detach origin/main
-git -C "$RUNTIME_ROOT" reset --hard origin/main
-# Dedicated transport remote: never ask Bridge-Comand for Science command branches.
-if git -C "$RUNTIME_ROOT" remote get-url transport >/dev/null 2>&1; then
-  git -C "$RUNTIME_ROOT" remote set-url transport "$TRANSPORT_URL"
+if git -C "$BRIDGE_ROOT" remote get-url transport >/dev/null 2>&1; then
+  git -C "$BRIDGE_ROOT" remote set-url transport "$TRANSPORT_URL"
 else
-  git -C "$RUNTIME_ROOT" remote add transport "$TRANSPORT_URL"
+  git -C "$BRIDGE_ROOT" remote add transport "$TRANSPORT_URL"
 fi
-git -C "$RUNTIME_ROOT" fetch --prune transport chatgpt-terminal chatgpt-terminal-backup
+git -C "$BRIDGE_ROOT" fetch --prune transport chatgpt-terminal chatgpt-terminal-backup
 
-cat >"$SERVICE_PATH" <<EOF
+STATE_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}/one-wave-chatgpt-terminal"
+EXTERNAL_ROOT="${ONE_WAVE_EXTERNAL_WORK:-$HOME/One-Wave-External-Work}"
+UNIT_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+UNIT="$UNIT_DIR/one-wave-chatgpt-terminal-pull.service"
+mkdir -p "$STATE_ROOT" "$UNIT_DIR" "$EXTERNAL_ROOT/inbox" "$EXTERNAL_ROOT/work" "$EXTERNAL_ROOT/outbox"
+
+cat >"$UNIT" <<EOF
 [Unit]
 Description=One-Wave resilient ChatGPT terminal bridge
 After=network-online.target
@@ -67,24 +55,21 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-WorkingDirectory=$RUNTIME_ROOT
-ExecStartPre=/usr/bin/git -C $RUNTIME_ROOT fetch --prune origin main
-ExecStartPre=/usr/bin/git -C $RUNTIME_ROOT checkout --detach origin/main
-ExecStart=/usr/bin/python3 $RUNTIME_ROOT/hive-pipe/chatgpt_terminal_pull.py --watch
+WorkingDirectory=$BRIDGE_ROOT
+ExecStart=/usr/bin/python3 $HERE/chatgpt_terminal_pull.py --watch
 Restart=always
 RestartSec=5
-# A transient GitHub/network outage must not permanently kill the bridge.
 TimeoutStartSec=45
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=$RUNTIME_ROOT $STATE_ROOT $SOURCE_REPO $EXTERNAL_WORK_ROOT
+ReadWritePaths=$BRIDGE_ROOT $STATE_ROOT $SCIENCE_ROOT $EXTERNAL_ROOT
 Environment=PYTHONUNBUFFERED=1
-Environment=CHATGPT_TERMINAL_DEFAULT_CWD=$SOURCE_REPO
+Environment=CHATGPT_TERMINAL_DEFAULT_CWD=$SCIENCE_ROOT
 Environment=CHATGPT_TERMINAL_ROUTES=primary=transport:chatgpt-terminal,backup=transport:chatgpt-terminal-backup
-Environment=HIVE_PIPE_ALLOWED_ROOTS=$SOURCE_REPO:$EXTERNAL_WORK_ROOT
-Environment=ONE_WAVE_PROJECT_ROOT=$SOURCE_REPO
+Environment=HIVE_PIPE_ALLOWED_ROOTS=$SCIENCE_ROOT:$EXTERNAL_ROOT
+Environment=ONE_WAVE_PROJECT_ROOT=$SCIENCE_ROOT
 Environment=REFERENCE_GATE_LEDGER=$STATE_ROOT/reference-receipts.jsonl
 
 [Install]
@@ -93,15 +78,16 @@ EOF
 
 systemctl --user daemon-reload
 systemctl --user enable --now one-wave-chatgpt-terminal-pull.service
+systemctl --user restart one-wave-chatgpt-terminal-pull.service
 
 printf 'CHATGPT_TERMINAL_PULL_INSTALLED\n'
-printf 'project=%s\n' "$SOURCE_REPO"
-printf 'runtime=%s\n' "$RUNTIME_ROOT"
+printf 'bridge=%s\n' "$BRIDGE_ROOT"
+printf 'science=%s\n' "$SCIENCE_ROOT"
 printf 'routes=transport:chatgpt-terminal,transport:chatgpt-terminal-backup\n'
 systemctl --user is-active one-wave-chatgpt-terminal-pull.service
 
 for attempt in 1 2 3 4 5; do
-  if python3 "$RUNTIME_ROOT/hive-pipe/bridge_doctor.py" --profile pull; then
+  if python3 "$HERE/bridge_doctor.py" --profile pull; then
     printf 'CHATGPT_TERMINAL_PULL_HEALTHY\n'
     exit 0
   fi

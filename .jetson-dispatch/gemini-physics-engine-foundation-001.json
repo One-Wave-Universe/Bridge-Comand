@@ -1,8 +1,0 @@
-{
-  "schema": "one-wave-jetson-gemini-task/v1",
-  "id": "jetson-gemini-physics-engine-foundation-001",
-  "mode": "review",
-  "task_path": "tasks/gemini/physics-engine-foundation-001.md",
-  "science_commit": "b4896753984a572f5f5accc900a28ae41051ff0a",
-  "created_for": "path-only Gemini CLI review on Jetson"
-}

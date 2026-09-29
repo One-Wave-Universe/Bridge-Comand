@@ -1,7 +1,0 @@
-{
-  "schema": "one-wave-github-gemini/v1",
-  "id": "gemini-dogs-smoke-20260928-02",
-  "question": "What are dogs? Answer in 2-3 sentences. Then state REQUEST_ID and the GitHub reference path you inspected.",
-  "model": "gemini-3.5-flash",
-  "references": [{"repo":"One-Wave-Universe/Bridge-Comand","ref":"main","path":"GEMINI_OPTIONAL_EXECUTION_PROTOCOL.md"}]
-}

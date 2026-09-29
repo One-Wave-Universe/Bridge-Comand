@@ -5,7 +5,7 @@ from urllib.request import Request, urlopen
 
 HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parent
-SCIENCE = pathlib.Path(os.environ.get("ONE_WAVE_SCIENCE_ROOT", "/home/Scales/One-Wave-Science"))
+SCIENCE = pathlib.Path(os.environ.get("ONE_WAVE_SCIENCE_ROOT", os.environ.get("ONE_WAVE_PROJECT_ROOT", str(pathlib.Path.home() / "One-Wave-Science"))))
 MCP_URL = os.environ.get("HIVE_PIPE_MCP_URL", "http://127.0.0.1:8765/mcp")
 MARKER = "BRIDGE_DOCTOR_GATEWAY_OK"
 

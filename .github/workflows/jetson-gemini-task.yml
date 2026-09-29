@@ -1,0 +1,131 @@
+name: Jetson Gemini Task
+
+on:
+  push:
+    paths:
+      - ".jetson-dispatch/gemini-*.json"
+      - ".gemini-dispatch/request-*.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jetson-gemini-task
+  cancel-in-progress: false
+
+jobs:
+  github_native:
+    if: contains(github.event.head_commit.message, 'Gemini native smoke')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Ask Gemini directly without Jetson
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${GEMINI_API_KEY:-}" || { echo "::error::GEMINI_API_KEY missing"; exit 2; }
+          P="$(git diff --name-only HEAD^ HEAD -- '.gemini-dispatch/request-*.json' | tail -n1)"
+          test -n "$P"
+          export P
+          python3 - <<'PY'
+          import json,os,urllib.request,pathlib
+          x=json.load(open(os.environ["P"]))
+          rid=x["id"]; refs=[]; chunks=[]
+          for r in x.get("references",[]):
+              url=f'https://raw.githubusercontent.com/{r["repo"]}/{r.get("ref","main")}/{r["path"]}'
+              data=urllib.request.urlopen(url,timeout=30).read().decode(errors="replace")
+              refs.append(r); chunks.append(f'REFERENCE {url}\n{data}')
+          prompt=f'REQUEST_ID: {rid}\nQUESTION: {x["question"]}\n\n'+'\n\n'.join(chunks)
+          body=json.dumps({"contents":[{"parts":[{"text":prompt}]}]}).encode()
+          model=x.get("model","gemini-3.5-flash")
+          q=urllib.request.Request(f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent',
+             data=body,method='POST',headers={'Content-Type':'application/json','x-goog-api-key':os.environ['GEMINI_API_KEY']})
+          raw=json.load(urllib.request.urlopen(q,timeout=180))
+          answer='\n'.join(p.get('text','') for c in raw.get('candidates',[]) for p in c.get('content',{}).get('parts',[])).strip()
+          receipt={"schema":"one-wave-github-gemini-receipt/v1","request_id":rid,"ok":bool(answer),
+                   "route":"github-hosted-runner->Gemini API","jetson_used":False,"references_read":refs,"answer":answer}
+          pathlib.Path("gemini-receipt.json").write_text(json.dumps(receipt,indent=2))
+          print(json.dumps(receipt,indent=2))
+          if not answer: raise SystemExit(5)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: github-native-gemini-receipt
+          path: gemini-receipt.json
+          if-no-files-found: warn
+
+  dispatch:
+    if: contains(github.event.head_commit.message, 'Jetson Gemini')
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GATEWAY_URL: ${{ secrets.JETSON_GATEWAY_URL }}
+      GATEWAY_TOKEN: ${{ secrets.JETSON_GATEWAY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Select and validate path-only task
+        id: task
+        shell: bash
+        run: |
+          set -euo pipefail
+          P="$(git diff --name-only HEAD^ HEAD -- '.jetson-dispatch/gemini-*.json' | tail -n1)"
+          test -n "$P"
+          python3 - "$P" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x["schema"]=="one-wave-jetson-gemini-task/v1"
+          assert x["id"] and x["task_path"].startswith("tasks/gemini/") and x["task_path"].endswith(".md")
+          assert x.get("mode") in ("review","ask")
+          assert ".." not in x["task_path"]
+          print("TASK_OK",x["id"],x["task_path"])
+          PY
+          echo "path=$P" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch existing Gemini CLI wrapper on Jetson
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${GATEWAY_URL:-}" || { echo "::error::JETSON_GATEWAY_URL missing"; exit 2; }
+          test -n "${GATEWAY_TOKEN:-}" || { echo "::error::JETSON_GATEWAY_TOKEN missing"; exit 3; }
+          export PACKET="${{ steps.task.outputs.path }}"
+          python3 - <<'PY'
+          import json,os,sys,urllib.request,urllib.error
+          x=json.load(open(os.environ["PACKET"]))
+          argv=["bash","scripts/gemini_min.sh",x["mode"],x["task_path"]]
+          args={"argv":argv,"cwd":"/home/Scales/One-Wave-Science","timeout":300,
+                "intention":"Run bounded path-only Gemini CLI task "+x["id"],
+                "consequence":"Return matching Jetson terminal result and Gemini JSON; do not edit repository."}
+          payload={"jsonrpc":"2.0","id":x["id"],"method":"tools/call","params":{"name":"terminal_run","arguments":args}}
+          req=urllib.request.Request(os.environ["GATEWAY_URL"].rstrip("/")+"/mcp",
+              data=json.dumps(payload).encode(),headers={"Authorization":"Bearer "+os.environ["GATEWAY_TOKEN"],"Content-Type":"application/json"},method="POST")
+          try:
+              with urllib.request.urlopen(req,timeout=330) as r: env=json.load(r)
+          except urllib.error.HTTPError as e:
+              sys.stderr.write(e.read().decode(errors="replace")); raise
+          if "error" in env: print(json.dumps(env["error"]),file=sys.stderr); raise SystemExit(4)
+          z=env.get("result",{}).get("structuredContent",{})
+          receipt={"schema":"one-wave-jetson-gemini-receipt/v1","request_id":x["id"],"argv":argv,
+                   "cwd":z.get("cwd"),"exit_code":z.get("exit_code"),"duration_ms":z.get("duration_ms"),
+                   "stdout":z.get("stdout",""),"stderr":z.get("stderr",""),"ok":z.get("ok",False)}
+          open("jetson-gemini-receipt.json","w").write(json.dumps(receipt,indent=2))
+          print(json.dumps(receipt))
+          raise SystemExit(0 if receipt["ok"] and receipt["exit_code"]==0 else 5)
+          PY
+
+      - name: Upload receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jetson-gemini-receipt
+          if-no-files-found: warn
+          path: jetson-gemini-receipt.json

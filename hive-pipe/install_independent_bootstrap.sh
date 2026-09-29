@@ -42,7 +42,9 @@ mkdir -p "$UNIT_DIR/timers.target.wants" "$UNIT_DIR/default.target.wants"
 ln -sfn ../one-wave-bootstrap.timer "$UNIT_DIR/timers.target.wants/one-wave-bootstrap.timer"
 systemctl --user daemon-reload
 systemctl --user enable --now one-wave-bootstrap.timer
-systemctl --user start one-wave-bootstrap.service || true
+# Do not synchronously start this oneshot from its own recovery chain. The
+# enabled timer runs it after installation completes and prevents recursive
+# systemctl waits when bootstrap reinstalls its own definition.
 echo ONE_WAVE_BOOTSTRAP_INSTALLED
 systemctl --user is-enabled one-wave-bootstrap.timer
 systemctl --user is-active one-wave-bootstrap.timer

@@ -1,0 +1,14 @@
+{
+  "schema": "one-wave-github-gemini/v1",
+  "id": "gemini-recovery-20260929-01",
+  "question": "Confirm the bridge route is live. Briefly state what this repository reference says the Gemini bridge should do and echo REQUEST_ID exactly.",
+  "model": "gemini-3.5-flash",
+  "references": [
+    {
+      "repo": "One-Wave-Universe/Bridge-Comand",
+      "ref": "main",
+      "path": "workflows/github-native-gemini.yml"
+    }
+  ],
+  "max_reference_chars": 30000
+}

@@ -22,7 +22,6 @@ from pathlib import Path
 import subprocess
 import sys
 import textwrap
-import time
 from typing import Any
 
 ROOT_FILES = (
@@ -40,7 +39,7 @@ MODES = (
     "discussion",
 )
 
-REFERENCE_PREAMBLE = """BRAIN BUDDY COUNCIL — ONE-WAVE REFERENCE + RESEARCH CONTRACT\n\nBefore answering:\n1. Reference GENERAL_REFERENCE_RULES.md.\n2. Reference AI_CANONICAL_START_HERE.md.\n3. Reference Governance_I_Series/I-06_Canonical_Node_Metadata_and_Alias_Resolution.md.\n4. Read YAML/front-matter metadata for every governed node actually used.\n5. Reference only the exact task-specific repo files needed after those authorities.\n6. Define the exact claim/test before external research.\n7. If current literature, measurements, CERN/LIGO/public data, or outside claims are needed, research them only after the repo claim/test is defined.\n8. Keep external source metadata/provenance distinct from One-Wave node metadata.\n9. Distinguish established external evidence from One-Wave hypotheses.\n10. Bring external findings back to the exact repo claim and classify them as support, contradiction, or inconclusive.\n11. Do not claim any command, experiment, or external lookup ran without a receipt/source.\n12. Do not edit, commit, merge, push, or expose secrets.\n13. Cite exact repo paths and external sources actually used.\n14. Return HOLD with the exact missing reference/evidence if grounding cannot be completed.\n\nReference/research loop:\nREFERENCE GIT -> DEFINE CLAIM/TEST -> I-06 METADATA -> EXTERNAL RESEARCH/DATA AS NEEDED -> VALIDATE -> RETURN TO REFERENCE\n"""
+REFERENCE_PREAMBLE = """BRAIN BUDDY COUNCIL — BASELINE ZERO REFERENCE + RESEARCH CONTRACT\n\nBefore answering:\n1. Reference GENERAL_REFERENCE_RULES.md.\n2. Reference AI_CANONICAL_START_HERE.md.\n3. Reference Governance_I_Series/I-06_Canonical_Node_Metadata_and_Alias_Resolution.md.\n4. Read YAML/front-matter metadata for every governed node actually used.\n5. Reference only the exact task-specific repo files needed after those authorities.\n6. Define the exact claim/test before external research.\n7. If current literature, measurements, CERN/LIGO/public data, or outside claims are needed, research them only after the repo claim/test is defined.\n8. Keep external source metadata/provenance distinct from One-Wave node metadata.\n9. Distinguish established external evidence from One-Wave hypotheses.\n10. Bring external findings back to the exact repo claim and classify them as support, contradiction, or inconclusive.\n11. Do not claim any command, experiment, or external lookup ran without a receipt/source.\n12. Do not edit, commit, merge, push, or expose secrets.\n13. Cite exact repo paths and external sources actually used.\n14. Return HOLD with the exact missing reference/evidence if grounding cannot be completed.\n\nReference/research loop:\nBASELINE ZERO -> IDENTIFY OWNING REPO -> REFERENCE CANON -> DEFINE CLAIM/TEST -> REFERENCE NODE METADATA -> EXTERNAL RESEARCH/DATA AS NEEDED -> VALIDATE AGAINST BASELINE ZERO -> RETURN TO OWNING REPO\n"""
 
 
 class CouncilError(RuntimeError):
@@ -131,7 +130,7 @@ def gemini_text(raw: str) -> str:
     return value
 
 
-def run_worker(root: Path, worker: str, prompt: str, timeout: int | None) -> dict[str, Any]:
+def run_worker(root: Path, worker: str, prompt: str) -> dict[str, Any]:
     if worker == "gemini":
         cmd = ["python3", "brain_buddy/hive_pipe/gemini_web_bridge.py", "--max-tool-rounds", "12", prompt]
     elif worker == "deepseek":
@@ -139,7 +138,6 @@ def run_worker(root: Path, worker: str, prompt: str, timeout: int | None) -> dic
     else:
         raise CouncilError(f"Unknown worker: {worker}")
 
-    started = time.monotonic()
     worker_env = os.environ.copy()
     if worker == "deepseek":
         worker_env.setdefault("DEEPSEEK_WEB_BASE_URL", "http://192.168.55.100:3000")
@@ -154,21 +152,8 @@ def run_worker(root: Path, worker: str, prompt: str, timeout: int | None) -> dic
             text=True,
             capture_output=True,
             check=False,
-            timeout=timeout,
             env=worker_env,
         )
-    except subprocess.TimeoutExpired as exc:
-        elapsed = round(time.monotonic() - started, 3)
-        return {
-            "worker": worker,
-            "ok": False,
-            "exit_code": 124,
-            "elapsed_s": elapsed,
-            "answer": "",
-            "stderr": f"Timed out after {timeout}s while preserving the other Council participant.",
-        }
-
-    elapsed = round(time.monotonic() - started, 3)
     stdout = p.stdout.strip()
     stderr = p.stderr.strip()
     answer = stdout
@@ -177,7 +162,6 @@ def run_worker(root: Path, worker: str, prompt: str, timeout: int | None) -> dic
         "worker": worker,
         "ok": p.returncode == 0,
         "exit_code": p.returncode,
-        "elapsed_s": elapsed,
         "answer": answer,
         "stderr": stderr,
     }
@@ -205,10 +189,10 @@ def transcript_text(turns: list[dict[str, str]]) -> str:
     return "\n\n".join(f"{t['speaker'].upper()}:\n{t['text']}" for t in turns)
 
 
-def run_parallel(root: Path, prompt: str, timeout: int | None) -> list[dict[str, Any]]:
+def run_parallel(root: Path, prompt: str) -> list[dict[str, Any]]:
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
         futures = {
-            ex.submit(run_worker, root, worker, prompt, timeout): worker
+            ex.submit(run_worker, root, worker, prompt): worker
             for worker in ("gemini", "deepseek")
         }
         by_name = {}
@@ -281,14 +265,15 @@ def interactive_user_turn(round_no: int) -> str:
 def save_transcript(root: Path, mode: str, question: str, turns: list[dict[str, str]]) -> Path:
     out = root / "External_Work" / "brain_buddy" / "outbox"
     out.mkdir(parents=True, exist_ok=True)
-    stamp = time.strftime("%Y%m%d-%H%M%S")
-    path = out / f"council-{mode}-{stamp}.md"
+    seq = len(list(out.glob(f"council-{mode}-*.md"))) + 1
+    path = out / f"council-{mode}-{seq:06d}.md"
     body = [
         "# Brain Buddy Council transcript",
         "",
         f"- mode: {mode}",
         f"- runtime repository: One-Wave-Universe/Bridge-Comand",
-        f"- reference repository: One-Wave-Universe/One-Wave-Science",
+        f"- baseline zero: entire One-Wave-Universe GitHub organization",
+        f"- reference selection: owning repository by subject; One-Wave-Science is primary for science",
         "",
         "## User question",
         "",
@@ -327,7 +312,6 @@ def main() -> int:
     ap.add_argument("mode", nargs="?", choices=MODES)
     ap.add_argument("question", nargs="?")
     ap.add_argument("--rounds", type=int, default=2, help="Discussion rounds; default 2")
-    ap.add_argument("--timeout", type=int, default=None, help="Optional per-worker timeout in seconds; default is no time limit")
     ap.add_argument("--save", action="store_true", help="Save a transcript receipt under External_Work")
     args = ap.parse_args()
 
@@ -351,17 +335,17 @@ def main() -> int:
     base = bounded_prompt(question)
 
     if mode == "gemini":
-        r = run_worker(root, "gemini", base, args.timeout)
+        r = run_worker(root, "gemini", base)
         print_result(r)
         turns.append({"speaker": "gemini", "text": r["answer"] or r["stderr"]})
 
     elif mode == "deepseek":
-        r = run_worker(root, "deepseek", base, args.timeout)
+        r = run_worker(root, "deepseek", base)
         print_result(r)
         turns.append({"speaker": "deepseek", "text": r["answer"] or r["stderr"]})
 
     elif mode == "both":
-        for r in run_parallel(root, base, args.timeout):
+        for r in run_parallel(root, base):
             print_result(r)
             turns.append({"speaker": r["worker"], "text": r["answer"] or r["stderr"]})
 
@@ -379,7 +363,6 @@ def main() -> int:
                 root,
                 second,
                 handoff_prompt(question, first, r1["answer"]),
-                args.timeout,
             )
             print_result(r2)
             turns.append({"speaker": second, "text": r2["answer"] or r2["stderr"]})
@@ -391,7 +374,7 @@ def main() -> int:
         for round_no in range(1, rounds + 1):
             for worker in ("gemini", "deepseek"):
                 prompt = discussion_turn_prompt(question, turns, worker, round_no)
-                r = run_worker(root, worker, prompt, args.timeout)
+                r = run_worker(root, worker, prompt)
                 print_result(r)
                 turns.append({"speaker": worker, "text": r["answer"] or r["stderr"]})
                 if not r["ok"]:

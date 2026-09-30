@@ -13,7 +13,7 @@ from deepseek_bridge import DEEPSEEK_TOOLS, HivePipeClient, MAX_TOOL_ROUNDS, dis
 
 DEFAULT_BASE = "http://192.168.55.100:3001"
 
-def post_json(url: str, payload: dict[str, Any], timeout: int = 330) -> dict[str, Any]:
+def post_json(url: str, payload: dict[str, Any], timeout: int | None = None) -> dict[str, Any]:
     raw = json.dumps(payload).encode("utf-8")
     req = Request(
         url,
@@ -24,7 +24,7 @@ def post_json(url: str, payload: dict[str, Any], timeout: int = 330) -> dict[str
         },
         method="POST",
     )
-    with urlopen(req, timeout=timeout) as r:
+    with urlopen(req) as r:
         data = json.loads(r.read().decode("utf-8"))
     if not isinstance(data, dict):
         raise RuntimeError("Gemini relay returned non-object JSON")
@@ -59,8 +59,7 @@ class GeminiWebAgent:
                 "role": "system",
                 "content": (
                     "You are Gemini Brain Buddy operating through bounded One-Wave tools. "
-                    "Reference the canonical repo before interpretation. Never claim a tool ran "
-                    "without its returned receipt. Keep external research distinct from repo metadata."
+                    "Treat the entire One-Wave-Universe GitHub organization as Baseline Zero. Identify the owning repo, reference its canon and node metadata before interpretation, then use external metadata/research only when needed. Never claim a tool ran without its returned receipt. Keep external research distinct from repo metadata and return findings to the owning reference."
                 ),
             },
             {"role": "user", "content": prompt},

@@ -131,7 +131,7 @@ def gemini_text(raw: str) -> str:
     return value
 
 
-def run_worker(root: Path, worker: str, prompt: str, timeout: int) -> dict[str, Any]:
+def run_worker(root: Path, worker: str, prompt: str, timeout: int | None) -> dict[str, Any]:
     if worker == "gemini":
         cmd = ["python3", "brain_buddy/hive_pipe/gemini_web_bridge.py", "--max-tool-rounds", "12", prompt]
     elif worker == "deepseek":
@@ -205,7 +205,7 @@ def transcript_text(turns: list[dict[str, str]]) -> str:
     return "\n\n".join(f"{t['speaker'].upper()}:\n{t['text']}" for t in turns)
 
 
-def run_parallel(root: Path, prompt: str, timeout: int) -> list[dict[str, Any]]:
+def run_parallel(root: Path, prompt: str, timeout: int | None) -> list[dict[str, Any]]:
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
         futures = {
             ex.submit(run_worker, root, worker, prompt, timeout): worker
@@ -327,7 +327,7 @@ def main() -> int:
     ap.add_argument("mode", nargs="?", choices=MODES)
     ap.add_argument("question", nargs="?")
     ap.add_argument("--rounds", type=int, default=2, help="Discussion rounds; default 2")
-    ap.add_argument("--timeout", type=int, default=240, help="Per-worker timeout in seconds")
+    ap.add_argument("--timeout", type=int, default=None, help="Optional per-worker timeout in seconds; default is no time limit")
     ap.add_argument("--save", action="store_true", help="Save a transcript receipt under External_Work")
     args = ap.parse_args()
 

@@ -1,0 +1,50 @@
+name: Brain Buddy Gemini Recovery
+on:
+  workflow_dispatch:
+    inputs:
+      question:
+        description: Brain Buddy test question
+        required: false
+        default: "Reply with provider name and BRAIN_BUDDY_TEST_OK."
+permissions:
+  contents: read
+
+jobs:
+  gemini:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify secret binding
+        shell: bash
+        run: |
+          test -n "$GEMINI_API_KEY" || { echo "HOLD: GEMINI_API_KEY is not configured in Bridge-Comand"; exit 2; }
+          echo "GEMINI_SECRET_BOUND"
+      - name: Gemini transport smoke
+        env:
+          QUESTION: ${{ inputs.question }}
+        run: |
+          python3 - <<'PY' | tee gemini-recovery-receipt.json
+          import json, os, urllib.request
+          key=os.environ["GEMINI_API_KEY"]
+          question=os.environ.get("QUESTION") or "Reply with provider name and BRAIN_BUDDY_TEST_OK."
+          baseline=(
+            "Baseline Zero / ground reference is the entire One-Wave-Universe GitHub organization. "
+            "For this transport smoke, do not claim repository inspection that did not occur. "
+            "Reply concisely to the user test."
+          )
+          body={"contents":[{"parts":[{"text":baseline+"\n\nUSER TEST:\n"+question}]}]}
+          url="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key="+key
+          req=urllib.request.Request(url,data=json.dumps(body).encode(),headers={"Content-Type":"application/json"},method="POST")
+          with urllib.request.urlopen(req,timeout=60) as response:
+              out=json.load(response)
+          answer="".join(p.get("text","") for p in out["candidates"][0]["content"]["parts"])
+          receipt={"schema":"one-wave-brain-buddy-recovery/v1","provider":"google","model":"gemini-2.5-flash","answer":answer}
+          print(json.dumps(receipt))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: brain-buddy-gemini-recovery-receipt
+          path: gemini-recovery-receipt.json

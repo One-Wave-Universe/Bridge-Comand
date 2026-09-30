@@ -1,0 +1,11 @@
+{
+  "schema": "one-wave-github-gemini/v1",
+  "id": "brain-buddy-dual-20260930-01",
+  "question": "Brain Buddy live dual-agent test. Read the supplied repository reference, state that Gemini is responding, summarize the reference route in one sentence, and include REQUEST_ID: brain-buddy-dual-20260930-01.",
+  "model": "gemini-3.5-flash",
+  "references": [
+    {"repo":"One-Wave-Universe/Bridge-Comand","ref":"recovery/brain-buddy-dual-live-20260930","path":"workflows/github-native-gemini.yml"},
+    {"repo":"One-Wave-Universe/Bridge-Comand","ref":"recovery/brain-buddy-dual-live-20260930","path":"hive-pipe/deepseek_web_bridge.py"}
+  ],
+  "max_reference_chars": 50000
+}

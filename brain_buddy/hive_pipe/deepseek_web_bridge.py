@@ -139,7 +139,7 @@ class DeepSeekWebAgent:
             f"{self.base_url}/v1/chat/completions",
             payload,
             {"Authorization": f"Bearer {self.web_api_key}"},
-            330,
+            None,
         )
         choices = response.get("choices")
         if not isinstance(choices, list) or not choices:
@@ -155,10 +155,7 @@ class DeepSeekWebAgent:
                 "role": "system",
                 "content": (
                     "You are operating the One-Wave Jetson through explicit tools. "
-                    "Reference the repository before interpretation. Use the smallest concrete "
-                    "command, inspect returned stdout/stderr/exit_code, and never claim a command "
-                    "ran unless a tool result confirms it. Do not redesign working access "
-                    "infrastructure unless the user explicitly asks for that."
+                    "Treat the entire One-Wave-Universe GitHub organization as Baseline Zero. Identify the owning repo, reference its canon and node metadata before interpretation, then use external metadata/research only when needed. Use the smallest concrete command, inspect returned stdout/stderr/exit_code, and never claim a command ran unless a tool result confirms it. Return findings to the owning reference."
                 ),
             },
             {"role": "user", "content": prompt},

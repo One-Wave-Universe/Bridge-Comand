@@ -100,3 +100,26 @@ Every worker entering or re-entering the Council receives:
 4. the exact references/evidence needed to continue.
 
 The purpose is continuity of reasoning across workers, sessions and generations of Brain Buddy without forcing every worker to replay the entire raw transcript.
+
+
+## Voluntary cross-loop entry
+
+A worker may recognize that another active project/problem loop is relevant and request permission to enter it. Cross-loop participation is requested, not assumed.
+
+A `REQUEST-ENTRY` should identify:
+- requesting worker and its current loop;
+- target loop;
+- why entry is useful now;
+- the evidence, contradiction, dependency or capability motivating the request;
+- the requesting worker's relevant Baseline Zero/reference state.
+
+The target loop owns admission. It may:
+- `ADMIT` now;
+- `DEFER` until an appropriate loop boundary;
+- `DECLINE` with a reason.
+
+Admission does not give the entering worker authority to rewrite the target project's canon. On admission, the worker must re-reference the target loop's current Baseline Zero, governing lens/rules, relevant state and inherited Weight of Time before contributing.
+
+An entering worker's prior context is evidence/context, not authority over the target loop. Results produced inside the target loop follow that loop's validation and branch rules.
+
+This mechanism should later support project loops voluntarily convening, borrowing workers, requesting specialist review, and returning useful results to their owning loops without collapsing all projects into one shared context.

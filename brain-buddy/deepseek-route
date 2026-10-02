@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="${ONE_WAVE_SCIENCE:-/home/Scales/One-Wave-Science}"
+exec python3 "$(dirname "$0")/deepseek_two_state_router.py" "$@"

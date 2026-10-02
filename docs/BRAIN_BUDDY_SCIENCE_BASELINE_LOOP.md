@@ -8,7 +8,7 @@ For One-Wave science work, the owning One-Wave Science repository is the scienti
 
 Every science task follows this outer loop:
 
-`BASELINE ZERO -> ONE-WAVE LENS/CANON -> LOGIC/REFERENCE RULES -> RELEVANT NODES/CHAPTERS -> METADATA -> EXTERNAL SOURCES WHEN REQUIRED -> COUNCIL WORK/DEBATE -> WEIGHT OF TIME -> VALIDATE -> UPDATE NODES + CHAPTERS + METADATA -> COMMIT -> NEW BASELINE ZERO -> RE-REFERENCE ALL WORKERS`
+`BASELINE ZERO -> ONE-WAVE LENS/CANON -> LOGIC/REFERENCE RULES -> RELEVANT NODES/CHAPTERS -> READ JETSON PIPELINE METADATA -> EXTERNAL SOURCES WHEN REQUIRED -> COUNCIL WORK/DEBATE -> WEIGHT OF TIME -> VALIDATE -> UPDATE NODES + CHAPTERS + CLAIM/REFERENCE RECORDS -> COMMIT -> NEW BASELINE ZERO -> RE-REFERENCE ALL WORKERS`
 
 ### Reference before reasoning
 
@@ -16,10 +16,10 @@ Before a worker reasons about a One-Wave claim it must receive or retrieve:
 - current Baseline Zero commit/ref;
 - One-Wave lens and canonical-start/reference rules;
 - exact relevant nodes and chapters;
-- relevant metadata, provenance, assumptions, transformations, gates and unresolved tests;
+- relevant Jetson pipeline metadata and its provenance/transform/version references, plus assumptions, gates and unresolved tests;
 - external/public evidence when the claim requires real-world comparison or verification.
 
-Internet/public sources are evidence inputs, not automatic One-Wave canon. Preserve provenance and separate established external results from One-Wave interpretation and unverified hypotheses.
+Internet/public sources are evidence inputs, not automatic One-Wave canon. Preserve provenance and separate established external results from One-Wave interpretation and unverified hypotheses.\n\n### Jetson pipeline metadata is read-only evidence\n\nCERN, LIGO and other source-data pipelines on the Jetson produce numeric metadata and Wave-transformed data. Brain Buddy MUST NOT rewrite, hand-edit, reinterpret in place, or regenerate those pipeline outputs as part of a science discussion/update. The Council may query/read them and record the exact dataset, source, pipeline/transform, version/hash and retrieval reference it used. Changes to a pipeline or its generated data are a separate pipeline/code task with their own validation and provenance.
 
 ### Weight of Time Council
 
@@ -32,7 +32,7 @@ The Council continues while useful unresolved weight remains: material disagreem
 A candidate result may update Science only after:
 1. re-reference against current Baseline Zero;
 2. check against One-Wave logic/reference rules;
-3. verify cited metadata and external evidence;
+3. verify cited Jetson pipeline metadata and external evidence without modifying pipeline outputs;
 4. preserve established / derived / simulated / hypothesis / unverified distinctions;
 5. identify affected nodes, chapters and metadata;
 6. check that the proposed edits agree with each other.
@@ -42,7 +42,7 @@ A candidate result may update Science only after:
 An accepted scientific change updates the complete affected reference set together:
 - node files;
 - affected book/chapter text;
-- metadata, provenance, gates, assumptions/transforms and evidence references as applicable;
+- writable claim/gate/provenance/reference records that point to the exact read-only pipeline metadata used;
 - indexes/cross-references required by Science canon.
 
 Do not update a chapter while leaving its governing node stale, or update a node while knowingly leaving an affected chapter inconsistent.

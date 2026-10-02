@@ -46,11 +46,11 @@ jobs:
               out["providers"]["gemini"]={"ok":False,"error_code":"GEMINI_API_KEY_MISSING"}
           else:
               try:
-                  raw=post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+                  raw=post("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
                       {"Content-Type":"application/json","x-goog-api-key":g},
                       {"contents":[{"parts":[{"text":q+"\nReturn REQUEST_ID: "+rid}]}]})
                   ans="\n".join(p.get("text","") for c in raw.get("candidates",[]) for p in c.get("content",{}).get("parts",[]) if p.get("text"))
-                  out["providers"]["gemini"]={"ok":bool(ans),"model":"gemini-2.5-flash","answer":ans}
+                  out["providers"]["gemini"]={"ok":bool(ans),"model":"gemini-3.5-flash","answer":ans}
               except Exception as e:
                   out["providers"]["gemini"]={"ok":False,"error_code":"GEMINI_CALL_FAILED","error":str(e)[:1000]}
 

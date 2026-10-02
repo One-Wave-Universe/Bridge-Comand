@@ -96,3 +96,33 @@ For bridges we control:
 5. other workers see it only after it enters shared state
 
 A chatbot's vendor-native app cannot be assumed to know Brain Buddy state merely because the same account is logged in. Awareness requires a Brain Buddy-aware bridge/integration or explicit synchronized context.
+
+
+## Baseline Zero is a real shared checkpoint
+
+Direct conversations with each connected AI MUST begin from the same material Brain Buddy checkpoint, not from a vague summary generated independently for each provider.
+
+A Baseline Zero checkpoint is an immutable/versioned manifest that identifies the exact shared state from which work continues. At minimum it binds:
+- `baseline_zero_id`
+- creation timestamp
+- owning loop/project
+- canonical repo(s)
+- exact branch and commit SHA(s)
+- governing reference/canon files and versions
+- current accepted science/repo state
+- compact Weight of Time reference/version
+- admitted VIEW set/version
+- unresolved contradiction/decision set
+- active work/simulator registry version
+- provenance/hash for the checkpoint manifest
+
+Every connected AI receives the same `baseline_zero_id` and manifest (plus role-specific task context). Provider adapters may format it differently but may not silently change its meaning.
+
+When Mark talks separately with ChatGPT, Gemini, DeepSeek, Claude, or another connected worker, each conversation is a branch of discussion from that shared Baseline Zero.
+
+A direct conversation does NOT automatically mutate Baseline Zero. Material proposals, corrections, code, evidence, or decisions return as candidate VIEWs/work results. After validation/admission and any required repo commit/test, Brain Buddy creates a NEW versioned Baseline Zero. Workers then re-reference that new checkpoint.
+
+Therefore:
+`BASELINE ZERO N -> independent AI conversations/work -> candidate VIEWs/results -> Council validation/integration -> BASELINE ZERO N+1`
+
+Workers should be able to report the exact `baseline_zero_id`, repo commit/checkpoint, and state version they are discussing. If they cannot, they are not synchronized and MUST say so rather than invent current state.

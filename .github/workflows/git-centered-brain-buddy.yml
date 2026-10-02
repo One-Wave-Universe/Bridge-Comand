@@ -12,7 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}\n      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       JETSON_GATEWAY_URL: ${{ secrets.JETSON_GATEWAY_URL }}
       JETSON_GATEWAY_TOKEN: ${{ secrets.JETSON_GATEWAY_TOKEN }}
     steps:

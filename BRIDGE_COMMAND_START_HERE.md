@@ -17,6 +17,54 @@ Every flip returns through the reference. Do not declare a bridge healthy becaus
 - Do not create another bridge repository, paste bridge doctrine into Science, or treat a generated worktree as canon.
 - Connect agents to the owning repository and record the repository URL, branch, commit SHA, and reference files in every receipt.
 
+## Reference -> Build -> Check — mandatory build law
+
+For any build, repair, recovery, bridge, worker, Brain Buddy, or runtime task, **REFERENCE does not mean merely reading design documentation**. REFERENCE means reconstructing the authoritative real state that the next change must inherit.
+
+Before writing or changing code, recover and record, in this order:
+
+1. **Canonical authority** — this file plus the owning repository's canonical start/reference rules.
+2. **Last successful observable result** relevant to the requested capability. Search receipts, responses, sessions, outputs, completed runs, workflow/job logs, and returned endpoint results. Prefer the last proven success over the latest commit.
+3. **Receipt/result provenance** — request ID, timestamp, provider/worker, actual returned content/result, and acceptance condition that made it a success.
+4. **Exact implementation that produced that result** — executable/entry point, caller, adapter/bridge/relay, trigger/listener/workflow/service, and state/session files.
+5. **Exact source state** — repository, branch, commit SHA, and relevant file SHAs/paths.
+6. **Exact execution path** — where execution starts, every transport boundary it crosses, where credentials/auth are supplied, and where the return comes back.
+7. **Current divergence** — compare the known-good state to the current state and identify the first changed or broken boundary.
+
+For recovery work, use this chain explicitly:
+
+`LAST SUCCESSFUL RESPONSE -> RECEIPT/SESSION -> CODE THAT PRODUCED IT -> COMMIT SHA -> EXECUTION/TRIGGER PATH -> AUTH/TRANSPORT -> RE-RUN SAME PACKET -> MATCHING RETURN RECEIPT`
+
+**Do not use "latest commit" as a substitute for known-good. Do not design a replacement from documentation while a prior working implementation can be recovered. Do not BUILD until the reference chain reaches a real executable entry point and its return path.**
+
+### BUILD
+
+Build from the recovered known-good source state on a new recovery/goal branch.
+
+- Preserve the working entry point and return path unless the bounded task specifically requires changing them.
+- Change the smallest boundary needed.
+- Do not collapse providers, transports, authentication methods, worker identities, state, provenance, receipts, or evidence sources into a common mechanism merely because they serve a common Brain Buddy contract.
+- Provider adapters remain provider-specific. A shared envelope is not permission to replace native transports.
+- Never replace a working logged-in/session route with an API route, or an API route with a session route, without explicit evidence and an explicit task requiring that change.
+- A build is incomplete if no reachable trigger/entry point can execute it.
+
+### CHECK
+
+CHECK means execute the real entry point through the intended path and observe the requested endpoint return.
+
+- Source inspection, file existence, syntax success, queue creation, workflow launch, service-active state, listener presence, or dispatch success are **not** endpoint PASS.
+- Require the same request ID across request and return when the contract supports it.
+- Record actual transport, provider/worker identity, reference state, result, and failure boundary.
+- If the endpoint does not return, mark `FAILED` or `BLOCKED`; do not describe the build as working.
+- After CHECK, return to REFERENCE. The observed result becomes part of the next authoritative state.
+- If CHECK fails, reference the last known-good chain again before the next BUILD. Do not stack speculative fixes.
+
+The mandatory loop is:
+
+`REFERENCE REAL STATE -> BUILD ONE BOUNDED CHANGE -> CHECK REAL ENDPOINT -> REFERENCE OBSERVED STATE -> ...`
+
+For Brain Buddy specifically, the persistent back-and-forth architecture coordinates independent workers; the reference is the authoritative state each loop crosses, not a replacement for the architecture. Council is a set of participating workers/views, not the Brain Buddy architecture itself.
+
 ## Directions for every AI client
 
 Codex, ChatGPT, Gemini, Claude, DeepSeek, Perplexity, local Qwen/OpenClaw, phone relays, and future clients use the same loop:

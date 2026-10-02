@@ -1,0 +1,85 @@
+name: Brain Buddy Provider Smoke Receipt
+
+on:
+  push:
+    paths:
+      - ".brain-buddy-dispatch/request-*.json"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: brain-buddy-provider-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Run provider smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          P="$(git diff --name-only HEAD^ HEAD -- '.brain-buddy-dispatch/request-*.json' | tail -n1)"
+          test -n "$P"
+          export REQUEST_PATH="$P"
+          python3 - <<'PY'
+          import json, os, pathlib, urllib.request, urllib.error
+          req=json.loads(pathlib.Path(os.environ["REQUEST_PATH"]).read_text())
+          rid=req["id"]; q=req["question"]
+          out={"schema":"one-wave-brain-buddy-provider-smoke/v1","request_id":rid,"providers":{}}
+
+          def post(url, headers, body, timeout=120):
+              r=urllib.request.Request(url,data=json.dumps(body).encode(),headers=headers,method="POST")
+              with urllib.request.urlopen(r,timeout=timeout) as x: return json.load(x)
+
+          g=os.environ.get("GEMINI_API_KEY","").strip()
+          if not g:
+              out["providers"]["gemini"]={"ok":False,"error_code":"GEMINI_API_KEY_MISSING"}
+          else:
+              try:
+                  raw=post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+                      {"Content-Type":"application/json","x-goog-api-key":g},
+                      {"contents":[{"parts":[{"text":q+"\nReturn REQUEST_ID: "+rid}]}]})
+                  ans="\n".join(p.get("text","") for c in raw.get("candidates",[]) for p in c.get("content",{}).get("parts",[]) if p.get("text"))
+                  out["providers"]["gemini"]={"ok":bool(ans),"model":"gemini-2.5-flash","answer":ans}
+              except Exception as e:
+                  out["providers"]["gemini"]={"ok":False,"error_code":"GEMINI_CALL_FAILED","error":str(e)[:1000]}
+
+          d=os.environ.get("DEEPSEEK_API_KEY","").strip()
+          if not d:
+              out["providers"]["deepseek"]={"ok":False,"error_code":"DEEPSEEK_API_KEY_MISSING"}
+          else:
+              try:
+                  raw=post("https://api.deepseek.com/chat/completions",
+                      {"Content-Type":"application/json","Authorization":"Bearer "+d},
+                      {"model":"deepseek-chat","messages":[{"role":"user","content":q+"\nReturn REQUEST_ID: "+rid}],"stream":False})
+                  ans=raw.get("choices",[{}])[0].get("message",{}).get("content","")
+                  out["providers"]["deepseek"]={"ok":bool(ans),"model":"deepseek-chat","answer":ans}
+              except Exception as e:
+                  out["providers"]["deepseek"]={"ok":False,"error_code":"DEEPSEEK_CALL_FAILED","error":str(e)[:1000]}
+
+          path=pathlib.Path("External_Work/brain_buddy/receipts")/(rid+".json")
+          path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(out,indent=2)+"\n")
+          print(json.dumps(out,indent=2))
+          PY
+
+      - name: Commit receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "brain-buddy-receipt-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add External_Work/brain_buddy/receipts/
+          git diff --cached --quiet && exit 0
+          git commit -m "receipt: Brain Buddy provider smoke"
+          git push

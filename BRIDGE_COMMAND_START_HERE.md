@@ -159,6 +159,93 @@ Reconvergence must be able to:
 
 Every meaningful flip crosses the reference/center again.
 
+### Whole-repository science orientation -> mechanism attack -> metadata expansion
+
+Every AI participating in One-Wave science work must begin from the **whole governed One-Wave-Science repository as its reference landscape** before choosing a local place to work. "Whole repo" means building and retaining an indexed/reference map of the repository's current governed state; it does **not** mean pretending the full repository fits in one prompt or context window.
+
+Required orientation sequence:
+
+`REFERENCE WHOLE REPO -> BUILD REPO MAP -> IDENTIFY OPEN MECHANISM/GAP -> SELECT BOUNDED WORK TARGET -> RE-REFERENCE TARGET + DEPENDENCIES -> IDENTIFY REQUIRED REAL-WORLD METADATA -> RETRIEVE MINIMUM SUFFICIENT METADATA -> ATTACK/DERIVE/SIMULATE/TEST -> CROSS-CHECK AGAINST WHOLE-REPO MAP -> UPDATE GOVERNED NODES/CHAPTERS -> CHECK COMMIT -> REFERENCE EXPANDED REPO`
+
+#### Whole-repo reference map
+
+Before mechanism work, the AI must inspect enough of the repository structure and governance to know what already exists and where authority lives. The reference map must cover, when present:
+- canonical start/reference/governance files;
+- node index/tree and node metadata;
+- active, hypothesis, held, blocked, superseded, and history states;
+- chapter status maps and chapter ownership;
+- equations, mechanisms, predictions, tests, simulations, experimental records, and evidence indexes;
+- aliases/cross-references/dependency links;
+- current branches/checkpoints relevant to the task;
+- unresolved questions, contradictions, missing mechanisms, and explicit evidence gaps.
+
+Use staged retrieval, indexes, manifests, tree walks, metadata, search, and targeted file reads so the AI can reference the repository as a whole without silently truncating it. Record the commit SHA of the mapped repository. If the map is stale after another accepted update, refresh the affected map/dependencies before further consequential work.
+
+#### Pick a place to work from the repo, not from chat drift
+
+After orientation, each science worker must select a bounded target that advances an existing One-Wave mechanism, resolves an explicit gap/contradiction, tests a prediction, connects two governed nodes, improves a derivation, or creates a clearly justified missing node/chapter section.
+
+The worker must state:
+- exact node/chapter/mechanism target;
+- why that target was selected from the repo map;
+- upstream assumptions/dependencies;
+- downstream claims/mechanisms that could change;
+- what would count as progress, falsification, HOLD, or failure;
+- whether the work is derivation, simulation, external-data test, literature comparison, implementation, or another explicit mode.
+
+Do not invent a parallel theory merely because an interesting idea appears in dialogue. New mechanisms must connect to the existing governed graph or be explicitly introduced as a new hypothesis with dependencies and conflicts recorded.
+
+#### Metadata must serve the mechanism
+
+After choosing the bounded mechanism, determine what **real-world metadata/evidence** is actually required. Metadata selection follows the mechanism/test; the mechanism is not retrofitted to whatever data is easiest to fetch.
+
+For external scientific sources, preserve at minimum when available:
+- provider/institution/experiment/detector;
+- dataset/catalog/event/record/version identifiers;
+- source/API/DOI or durable locator;
+- release/version and retrieval timestamp;
+- units, coordinate/frame conventions, calibration, uncertainty/error fields, and quality flags;
+- selection/filter/query parameters;
+- byte/record/sample counts and content hash for retrieved material;
+- license/access constraints when relevant;
+- raw-vs-derived distinction and transformation provenance.
+
+Retrieve metadata first, inspect scale/coverage, then fetch the smallest sufficient data slice. Preserve raw provider evidence separately from One-Wave transformations. Never manufacture a missing measurement, unit, calibration, uncertainty, or provenance field.
+
+#### Expand One-Wave mechanisms through differential attack
+
+Workers should use independent approaches where useful: derivation, dimensional analysis, simulation, literature/reference comparison, metadata/data test, counterexample search, conventional-model comparison, implementation, or experimental design. Their outputs remain separate VIEWs with provenance.
+
+The purpose is not to make One-Wave sound correct. The purpose is to make its mechanisms **more explicit and testable** by:
+- deriving missing steps/equations;
+- finding hidden assumptions;
+- resolving or preserving contradictions;
+- connecting scale/state/dependency relations;
+- identifying conventional explanations that must be distinguished;
+- producing discriminating predictions/tests;
+- running simulations or bounded evidence checks;
+- falsifying mechanisms that fail;
+- refining surviving hypotheses without upgrading their evidence status improperly.
+
+A negative result expands the repo when it clearly records what failed, why, what dependency was affected, and what remains possible.
+
+#### Required return from every science worker
+
+A science worker return must include:
+- repo commit SHA and whole-repo map/version referenced;
+- chosen target node/chapter/mechanism;
+- exact files/references read deeply after orientation;
+- external metadata/evidence used and provenance;
+- method/attack performed;
+- result and uncertainty;
+- contradictions/falsification attempts;
+- affected upstream/downstream dependencies;
+- proposed node/chapter changes;
+- correct evidence/status label;
+- next smallest discriminating test or derivation.
+
+Brain Buddy reconverges these returns, challenges them, and only then sends an authorized bounded repo update through the governed GitHub node/chapter loop.
+
 ### Governed GitHub node + chapter update loop
 
 Brain Buddy's back-and-forth dialogue must be able to turn a validated finding into a governed GitHub update in the **owning repository**, including One-Wave-Science nodes and book chapters. This is an ACTION-DOWN capability of the greater loop, not an automatic side effect of worker speech.

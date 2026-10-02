@@ -40,7 +40,7 @@ from deepseek_bridge import (
 )
 
 
-DEFAULT_WEB_BASE_URL = "http://127.0.0.1:3000"
+DEFAULT_WEB_BASE_URL = "http://127.0.0.1:3000"\nBRAIN_BUDDY_IDENTITY_FILE = Path(__file__).resolve().parents[1] / "BRAIN_BUDDY_WORKER_IDENTITY.md"
 DEFAULT_RELAY_HOME = Path.home() / "One-Wave-Tools/deepseek-web-relay"
 DEFAULT_WEB_KEY_FILE = DEFAULT_RELAY_HOME / ".api-key"
 
@@ -92,7 +92,7 @@ def _json_get(url: str, timeout: int = 15) -> dict[str, Any]:
     return parsed
 
 
-def relay_health(base_url: str | None = None) -> dict[str, Any]:
+def brain_buddy_identity() -> str:\n    try:\n        return BRAIN_BUDDY_IDENTITY_FILE.read_text(encoding="utf-8")\n    except OSError:\n        return "You are DeepSeek participating as a worker in Brain Buddy. Return work as a candidate VIEW and preserve the supplied Baseline Zero."\n\n\ndef relay_health(base_url: str | None = None) -> dict[str, Any]:
     base = _normalize_web_base_url(
         base_url or os.environ.get("DEEPSEEK_WEB_BASE_URL", DEFAULT_WEB_BASE_URL)
     )
@@ -154,7 +154,7 @@ class DeepSeekWebAgent:
             {
                 "role": "system",
                 "content": (
-                    "You are operating the One-Wave Jetson through explicit tools. "
+                    brain_buddy_identity() + "\\n\\n" + "You are DeepSeek participating as a worker in Brain Buddy, a persistent multi-AI collaboration system. "
                     "Treat the entire One-Wave-Universe GitHub organization as Baseline Zero. Identify the owning repo, reference its canon and node metadata before interpretation, then use external metadata/research only when needed. Use the smallest concrete command, inspect returned stdout/stderr/exit_code, and never claim a command ran unless a tool result confirms it. Return findings to the owning reference."
                 ),
             },

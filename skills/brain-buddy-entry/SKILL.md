@@ -4,9 +4,9 @@
 This is the mandatory entry plugin/skill for ChatGPT and every other Brain Buddy-capable AI. It exists to stop workers from choosing a convenient tool or machine before loading Brain Buddy routing authority.
 
 ## Hard start rule
-For any One-Wave / Brain Buddy / Science / repo / bridge / worker task:
+For ANY One-Wave-related action by ANY AI/worker/agent — including direct chat, science, repo work, coding, research, review, simulation, bridge recovery, device work, metadata work, or Council work:
 
-1. ENTER BRAIN BUDDY FIRST.
+1. ENTER BRAIN BUDDY FIRST. This is universal and has no provider-specific exception.
 2. Load the current Brain Buddy Baseline Zero / shared-state manifest.
 3. Load Bridge-Comand routing/reference authority before selecting any execution path.
 4. Identify the owning repo, current branch/checkpoint, and exact task.
@@ -47,3 +47,20 @@ A worker is live only after a matching real return receipt.
 
 ## Completion
 Write material route discoveries, corrections, and known-good receipts back into Brain Buddy shared state so the next AI/device begins from the corrected Baseline Zero.
+
+
+## Universal entry law
+
+ALL participating AIs, workers, agents, subagents, coding workers, reviewers, researchers, simulators, bridge workers, and future local brains MUST enter Brain Buddy before doing One-Wave work.
+
+This applies equally to ChatGPT, Gemini, DeepSeek, Claude, and future providers.
+
+No worker may bypass Brain Buddy and then attach its work afterward as though it had been synchronized from the start.
+
+Direct conversation is also an entry point. When Mark begins One-Wave work with a connected AI, the integration MUST perform Brain Buddy entry/synchronization before that AI answers the project task.
+
+Required order:
+
+BRAIN BUDDY ENTRY -> CURRENT BASELINE ZERO -> SHARED STATE / WEIGHT OF TIME -> OWNING REPO + CANON -> ROUTING AUTHORITY -> TASK-SPECIFIC REFERENCES -> CHOOSE CAPABILITY/ROUTE -> ACT -> RETURN RECEIPT/VIEW -> ADMIT/VALIDATE -> UPDATE SHARED STATE.
+
+If Brain Buddy entry cannot be completed, the worker MUST identify itself as unsynchronized and must not represent its answer as current Brain Buddy state.

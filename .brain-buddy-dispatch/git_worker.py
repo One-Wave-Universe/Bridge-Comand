@@ -24,6 +24,11 @@ def gemini(req,ev,out):
     z=post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",{"contents":[{"role":"user","parts":[{"text":prompt(r,e,"Gemini")}]}]},{"x-goog-api-key":key})
     ans="\n".join(p["text"] for c in z.get("candidates",[]) for p in c.get("content",{}).get("parts",[]) if "text" in p)
     pathlib.Path(out).write_text(json.dumps({"actor":"GEMINI","status":"COMPLETE" if ans else "FAILED","answer":ans,"model":model},indent=2))
+def chatgpt(req,ev,out):
+    r,e=load(req),load(ev); key=os.environ["OPENAI_API_KEY"]; model=r.get("openai_model","gpt-5.6-luna")
+    z=post("https://api.openai.com/v1/responses",{"model":model,"input":prompt(r,e,"ChatGPT")},{"Authorization":"Bearer "+key})
+    ans="".join(x.get("text","") for item in z.get("output",[]) for x in item.get("content",[]) if x.get("type")=="output_text")
+    pathlib.Path(out).write_text(json.dumps({"actor":"CHATGPT","status":"COMPLETE" if ans else "FAILED","answer":ans,"model":model,"response_id":z.get("id")},indent=2))
 def deepseek(req,ev,out):
     r,e=load(req),load(ev); key=os.environ["DEEPSEEK_API_KEY"]; model=r.get("deepseek_model","deepseek-chat")
     z=post("https://api.deepseek.com/chat/completions",{"model":model,"messages":[{"role":"user","content":prompt(r,e,"DeepSeek")}],"temperature":0.2},{"Authorization":"Bearer "+key})
@@ -31,9 +36,9 @@ def deepseek(req,ev,out):
     pathlib.Path(out).write_text(json.dumps({"actor":"DEEPSEEK","status":"COMPLETE","answer":ans,"model":z.get("model",model),"response_id":z.get("id")},indent=2))
 def state(req,ev,out):
     r,e=load(req),load(ev); views=[]
-    for p in ("gemini-view.json","deepseek-view.json"):
+    for p in ("gemini-view.json","chatgpt-view.json","deepseek-view.json"):
         if pathlib.Path(p).exists(): views.append(load(p))
     pathlib.Path(out).write_text(json.dumps({"schema":"one-wave-brain-buddy-state/v1","request_id":r["id"],"science_head":e["science_head"],"views":views,"next":"re-reference Git with returned views"},indent=2))
 if __name__=="__main__":
     m=sys.argv[1]
-    {"evidence":evidence,"gemini":gemini,"deepseek":deepseek,"state":state}[m](*sys.argv[2:])
+    {"evidence":evidence,"gemini":gemini,"chatgpt":chatgpt,"deepseek":deepseek,"state":state}[m](*sys.argv[2:])

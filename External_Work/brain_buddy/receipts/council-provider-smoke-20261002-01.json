@@ -1,0 +1,15 @@
+{
+  "schema": "one-wave-brain-buddy-provider-smoke/v1",
+  "request_id": "council-provider-smoke-20261002-01",
+  "providers": {
+    "gemini": {
+      "ok": false,
+      "error_code": "GEMINI_CALL_FAILED",
+      "error": "HTTP Error 404: Not Found"
+    },
+    "deepseek": {
+      "ok": false,
+      "error_code": "DEEPSEEK_API_KEY_MISSING"
+    }
+  }
+}

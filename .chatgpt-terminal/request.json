@@ -1,0 +1,12 @@
+{
+  "id": "brain-buddy-deepseek-smoke-20261002-01",
+  "argv": [
+    "python3",
+    "hive-pipe/deepseek_web_bridge.py",
+    "Brain Buddy recovery smoke test. Reply with exactly DEEPSEEK_COUNCIL_RETURN_OK and REQUEST_ID: brain-buddy-deepseek-smoke-20261002-01. Do not run tools."
+  ],
+  "cwd": "/home/Scales/Bridge-Comand",
+  "timeout": 180,
+  "intention": "Verify the existing authorized DeepSeek web bridge returns a real Brain Buddy Council response through the Jetson pull route.",
+  "consequence": "Read-only provider smoke; no repository edits or system changes are requested."
+}

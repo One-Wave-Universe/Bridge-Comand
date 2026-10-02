@@ -69,3 +69,34 @@ Until a solid, repeatedly tested Brain Buddy version is deliberately established
 - Science edits produced by Brain Buddy are also proposed and validated on branches under the owning Science repository's authority before canonical merge.
 - Establishing a new `main` baseline is a deliberate promotion after repeatable execution, validation, restart/recovery testing, and preservation of the last known-good state.
 - After promotion, that canonical commit becomes the development Baseline Zero; subsequent evolution branches from it rather than editing it in place.
+
+
+## Weight of Time is inherited state
+
+Weight of Time is not a temporary discussion mode and MUST NOT be discarded by later Brain Buddy versions, UI rewrites, provider changes, restarts, commits, or Baseline Zero promotion. Future implementations may expand it but must preserve its core behavior.
+
+For each unresolved problem, carry forward enough state to reconstruct why the current position exists:
+- competing views and material disagreements;
+- attempted derivations/tests and their outcomes;
+- contradictions and unresolved questions;
+- evidence acquired and evidence still missing;
+- failed or rejected paths and the reason they failed;
+- current claim/gate state and provenance;
+- worker results that materially changed the problem;
+- references to the Baseline Zero states under which those results were produced.
+
+Elapsed wall-clock time alone is not Weight of Time. Weight grows from unresolved work and its accumulated consequence/history.
+
+### Expansion rule
+
+A later result is a new VIEW over the accumulated state, not a replacement for earlier unresolved state. Workers may re-open a settled-looking answer when new evidence creates a material contradiction or better-supported path.
+
+When a new Baseline Zero is established, compress the resolved history into the canonical nodes/chapters/claim records while retaining references to unresolved weight. Do not erase unresolved contradictions merely because a commit was made.
+
+Every worker entering or re-entering the Council receives:
+1. the current Baseline Zero;
+2. the current problem state;
+3. the material inherited Weight of Time;
+4. the exact references/evidence needed to continue.
+
+The purpose is continuity of reasoning across workers, sessions and generations of Brain Buddy without forcing every worker to replay the entire raw transcript.

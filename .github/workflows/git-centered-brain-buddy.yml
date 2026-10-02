@@ -1,0 +1,64 @@
+name: Git-Centered Brain Buddy Worker
+on:
+  push:
+    paths:
+      - ".brain-buddy-dispatch/request-*.json"
+permissions:
+  contents: read
+concurrency:
+  group: brain-buddy-worker
+  cancel-in-progress: false
+jobs:
+  reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 2}
+      - name: Select Git request
+        id: req
+        shell: bash
+        run: |
+          set -euo pipefail
+          P="$(git diff --name-only HEAD^ HEAD -- '.brain-buddy-dispatch/request-*.json' | tail -n1)"
+          test -n "$P"
+          echo "path=$P" >> "$GITHUB_OUTPUT"
+      - name: Checkout canonical Science reference
+        uses: actions/checkout@v4
+        with:
+          repository: One-Wave-Universe/One-Wave-Science
+          path: science
+          fetch-depth: 1
+      - name: Build one shared Git evidence pack
+        env:
+          REQUEST_PATH: ${{ steps.req.outputs.path }}
+        run: |
+          python3 .brain-buddy-dispatch/git_worker.py evidence "$REQUEST_PATH" science shared-evidence.json
+      - name: Gemini acts from shared reference
+        if: ${{ env.GEMINI_API_KEY != '' }}
+        env:
+          REQUEST_PATH: ${{ steps.req.outputs.path }}
+        run: python3 .brain-buddy-dispatch/git_worker.py gemini "$REQUEST_PATH" shared-evidence.json gemini-view.json
+      - name: DeepSeek acts from shared reference
+        if: ${{ env.DEEPSEEK_API_KEY != '' }}
+        env:
+          REQUEST_PATH: ${{ steps.req.outputs.path }}
+        run: python3 .brain-buddy-dispatch/git_worker.py deepseek "$REQUEST_PATH" shared-evidence.json deepseek-view.json
+      - name: Assemble visible state
+        if: always()
+        env:
+          REQUEST_PATH: ${{ steps.req.outputs.path }}
+        run: python3 .brain-buddy-dispatch/git_worker.py state "$REQUEST_PATH" shared-evidence.json brain-buddy-state.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: git-centered-brain-buddy-state
+          path: |
+            shared-evidence.json
+            gemini-view.json
+            deepseek-view.json
+            brain-buddy-state.json
+          if-no-files-found: warn

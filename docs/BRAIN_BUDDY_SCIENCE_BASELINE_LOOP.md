@@ -56,3 +56,16 @@ Before any Council worker continues downstream science reasoning, provide or req
 ### Git safety
 
 Council reasoning may propose edits, but experimental work stays on branches until validated. Canonical updates follow the owning repository's merge/authority rules. Receipts prove worker returns; they do not make a scientific claim true.
+
+
+## Branch-first development law
+
+Until a solid, repeatedly tested Brain Buddy version is deliberately established as the canonical main baseline, all Brain Buddy changes remain branch work.
+
+- Do not develop directly on `main`.
+- Each substantial architecture change, AI/provider adapter, loop evolution, Science Room change, Workbench change, pipeline/code change, or recovery experiment gets an explicit branch.
+- A working evolution is checkpointed before the next substantial evolution branches from it.
+- Failed experiments remain isolated and must not destabilize a known-good branch.
+- Science edits produced by Brain Buddy are also proposed and validated on branches under the owning Science repository's authority before canonical merge.
+- Establishing a new `main` baseline is a deliberate promotion after repeatable execution, validation, restart/recovery testing, and preservation of the last known-good state.
+- After promotion, that canonical commit becomes the development Baseline Zero; subsequent evolution branches from it rather than editing it in place.

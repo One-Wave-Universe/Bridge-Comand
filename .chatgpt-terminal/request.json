@@ -1,12 +1,16 @@
 {
-  "id": "brain-buddy-deepseek-smoke-20261002-01",
+  "id": "bb-restore-discussion-20261002-01",
   "argv": [
     "python3",
-    "hive-pipe/deepseek_web_bridge.py",
-    "Brain Buddy recovery smoke test. Reply with exactly DEEPSEEK_COUNCIL_RETURN_OK and REQUEST_ID: brain-buddy-deepseek-smoke-20261002-01. Do not run tools."
+    "brain_buddy/brain_buddy_council.py",
+    "discussion",
+    "Reference the full canonical One-Wave repository first. What is the strongest unresolved technical question in the current Brain Buddy architecture, and what exact test should we run next?",
+    "--rounds",
+    "2",
+    "--save"
   ],
   "cwd": "/home/Scales/Bridge-Comand",
-  "timeout": 180,
-  "intention": "Verify the existing authorized DeepSeek web bridge returns a real Brain Buddy Council response through the Jetson pull route.",
-  "consequence": "Read-only provider smoke; no repository edits or system changes are requested."
+  "timeout": 300,
+  "intention": "Restore and verify the last recovered Gemini-DeepSeek Brain Buddy back-and-forth from the repo-defined terminal-pull route.",
+  "consequence": "Require real Gemini and DeepSeek discussion returns and a saved Council transcript; no dispatch-only success."
 }

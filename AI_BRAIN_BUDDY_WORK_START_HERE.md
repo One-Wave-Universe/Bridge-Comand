@@ -175,6 +175,27 @@ If your implementation requires a missing program/bridge, DOCUMENT IT explicitly
 
 Do not silently remove a required capability because the bridge is unavailable today.
 
+
+## Laptop storage rule — NO hard repo copies
+
+Brain Buddy workers MUST NOT create persistent full repository clones, mirrors, duplicate checkout trees, profile copies, or background repo-copy loops on Mark's laptop.
+
+The laptop is NOT a repository replication target.
+
+Preferred access order for laptop work:
+1. GitHub/API/reference access without cloning;
+2. existing authorized remote working copy on Jetson/build machine when execution requires a checkout;
+3. narrow file retrieval/materialization for only the files actually required;
+4. only when unavoidable, a bounded temporary workspace with explicit size/lifetime and cleanup.
+
+A temporary laptop workspace MUST NOT become a hidden persistent clone. Record why it is required, where it lives, its expected maximum size, and when/how it is removed.
+
+Do not configure background watchers, services, login jobs, profile-copy jobs, synchronization loops, worktree farms, caches, or recovery mechanisms that repeatedly copy repositories onto the laptop.
+
+Before any AI proposes a laptop-side clone/copy as a convenience, it must choose a non-copying reference/remote route if that can satisfy the task.
+
+Intentional working checkouts on Jetson or another designated build machine are allowed when execution genuinely requires them, subject to that machine's storage and branch rules.
+
 ## Required branch work note
 
 Every AI implementation branch should add/update a small branch-local work note containing:

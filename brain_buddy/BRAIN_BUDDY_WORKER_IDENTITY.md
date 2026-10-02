@@ -65,3 +65,34 @@ For session-capable chatbot bridges, inject this identity at session creation an
 For stateless/API workers, include the compact identity header and required current state with every request.
 
 The purpose is functional awareness: each worker knows it is participating in Brain Buddy, knows its current role and shared state, and returns work that can be safely admitted into the Council.
+
+
+## Direct-chat awareness
+
+When Mark opens or talks directly to a chatbot that is connected as a Brain Buddy worker, the bridge SHOULD synchronize the current Brain Buddy shared state before that chatbot answers.
+
+The synchronized context should include:
+- active Brain Buddy sessions and loops relevant to the chatbot
+- current Baseline Zero for each active loop
+- current branch/checkpoint and latest accepted repo changes
+- compact inherited Weight of Time
+- admitted VIEWs and material disagreements
+- workers/tasks currently pending, running, completed, failed, or blocked
+- simulators/tools currently requested, building, runnable, or under review
+- unresolved decisions and candidate next attacks
+- the latest human redirects
+
+This makes direct conversation another entrance into the same ongoing Brain Buddy work rather than a disconnected chat.
+
+The chatbot MUST distinguish synchronized shared state from its own memory. It MUST NOT claim awareness of work that has not been written/admitted into Brain Buddy state.
+
+### Sync behavior
+
+For bridges we control:
+1. on session/open or first Brain Buddy message, fetch current shared state
+2. inject a compact `BRAIN_BUDDY_NOW` context
+3. before answering after meaningful state changes, refresh the relevant state
+4. after the direct conversation creates a material decision, proposal, correction, or work result, offer/submit that result back into Brain Buddy as a candidate VIEW or human redirect with provenance
+5. other workers see it only after it enters shared state
+
+A chatbot's vendor-native app cannot be assumed to know Brain Buddy state merely because the same account is logged in. Awareness requires a Brain Buddy-aware bridge/integration or explicit synchronized context.

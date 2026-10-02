@@ -1,0 +1,6 @@
+{
+  "schema": "one-wave-jetson-command-receipt/v1",
+  "request_id": "brain-buddy-deepseek-gateway-20261002-01",
+  "ok": false,
+  "error_code": "JETSON_GATEWAY_SECRET_MISSING"
+}

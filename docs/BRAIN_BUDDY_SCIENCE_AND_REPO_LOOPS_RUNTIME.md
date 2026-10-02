@@ -130,3 +130,87 @@ Maintain a project-visible registry of requested and existing simulators with:
 - unresolved limitations
 
 Science Council can request a simulator from Repo Work. Repo Work returns implementation/test evidence; Science Council interprets the result against the original scientific question. Passing software tests does not itself validate the scientific model.
+
+
+## Build notes — differential weighting, nested Weight of Time, and live loop interaction
+
+Status: design notes to preserve for implementation experiments. These are architecture targets, not claims that the runtime already implements them.
+
+### Differential option ladder
+
+Brain Buddy should not reduce competing options to isolated confidence scores. Explore a differential ladder centered on a real unresolved/HOLD state:
+
+`A strongly favored <- A favored <- A leaning <- (0 / unresolved) -> B leaning -> B favored -> B strongly favored`
+
+The ladder represents the current differential between competing options. Do not import CELL_V1 electrical threshold values into Brain Buddy merely because the topology is similar; Brain Buddy needs its own experimentally justified transition rules.
+
+Agreement does not add weight. Multiple workers repeating the same claim, sharing the same source, or inheriting the same unsupported assumption are alignment, not independent confirmation. Track shared ancestry/provenance so duplicated support cannot create a house-of-cards effect.
+
+Independent evidence, independent tests, survived challenges, contradictions, and falsification may change the differential. A decisive falsification must be able to collapse downstream dependent conclusions regardless of how many workers agreed with them.
+
+### Weight of Time — nested asynchronous loops
+
+Weight of Time is NOT a confidence score, consensus counter, or elapsed-time bonus.
+
+It arises from loops within loops running asynchronously. While one loop is still cycling on a longer task, other loops continue doing useful cycles rather than blocking. By the time the loops reconverge, different loops may have accumulated different amounts and kinds of work/state transition.
+
+`NESTED LOOPS -> UNEQUAL OPPORTUNITY TO CYCLE -> ACCUMULATED WORK/STATE -> RECONVERGENCE -> DIFFERENTIAL EVALUATION -> NEW SHARED STATE -> CONTINUE`
+
+More wall-clock time alone adds no weight. More agreement adds no weight. More cycles alone do not prove correctness. The important state is what useful work, tests, contradictions, references, derivations, or discoveries occurred during those cycles.
+
+A slow loop may return one decisive result that overturns many faster cycles. Fast loops may discover contradictions that change how a later slow result is interpreted.
+
+A higher-level HOLD must not mean inactivity. It can preserve an unresolved choice while child loops continue working.
+
+### Listen/evaluate/interject while loops are cycling
+
+Workers need not wait for another loop's final return. An admitted loop/worker may observe available intermediate state from still-cycling loops, evaluate it, and selectively interject without forcing those loops to terminate.
+
+Target behavior:
+
+`CYCLE -> OBSERVE/LISTEN -> EVALUATE -> INTERJECT OR REMAIN SILENT -> RECEIVING LOOP ABSORBS INPUT -> CONTINUE CYCLING -> RECONVERGE`
+
+An interjection is input, not evidence merely because another AI supplied it. Useful interjections include contradictions, missing references, invalid assumptions, independent evidence, duplicated-work detection, dependency changes, test results, or questions that materially change the attack. Mere agreement should normally remain silent.
+
+The runtime needs an intervention threshold/rule so workers do not flood one another with low-value chatter.
+
+### Think-before-speak <-> speak-before-thinking differential
+
+Explore a second live differential controlling when a worker exports internal state:
+
+`THINK / COMPRESS <- strong - moderate - slight - (0) - slight - moderate - strong -> SPEAK / EXPRESS`
+
+THINK-FIRST: do more internal work before exporting a VIEW.
+SPEAK-FIRST: expose an immature/reversible thought early so other loops can begin working on it while the originating loop continues thinking.
+
+Neither direction is inherently superior and neither creates evidentiary weight.
+
+Factors that should push toward THINK-FIRST include expensive/irreversible action, repo mutation, scientific claims, unresolved assumptions, high dependency depth, or consequences requiring validation.
+
+Factors that should push toward SPEAK-FIRST include exploration, brainstorming, cheap reversible proposals, exposing a contradiction, requesting another loop's perspective, or starting useful parallel work early.
+
+Speaking early creates a VIEW, not a commit or accepted truth. Thinking longer does not make a result true. Admission, provenance, reference checks, evidence, tests, and validation determine what may enter a new Baseline Zero.
+
+### Evidence/dependency graph candidate
+
+Do not make an opaque neural network the authority for these decisions. Explore an explicit inspectable graph/state model in which QUESTION/OPTION, VIEW, EVIDENCE, CHALLENGE/TEST, RESULT, and REFERENCE relationships can be traced.
+
+AI agreement belongs in VIEW/alignment state rather than evidence weight. Track evidence ancestry and downstream dependencies. If a foundational assumption is falsified, dependent conclusions must be discoverable and marked for re-reference/re-evaluation instead of continuing to stand on inherited weight.
+
+A neural model may later help retrieve, propose, cluster, or detect relationships, but should not silently replace the explicit provenance/differential state.
+
+### Build questions to resolve experimentally
+
+Before locking implementation, test:
+- representation of pairwise/multi-option differential ladders;
+- transition rules and whether seven bands are sufficient;
+- how useful cycle/state changes are represented without turning cycle count into authority;
+- what intermediate loop state is safe/useful to expose;
+- intervention thresholds and anti-chatter controls;
+- how THINK<->SPEAK state changes dynamically;
+- provenance/shared-ancestry detection;
+- dependency invalidation and re-reference propagation;
+- reconvergence rules when slow decisive results meet many fast intermediate cycles;
+- persistence/restart behavior for nested loops and their partial state.
+
+Treat these as build/research questions. Branch competing implementations and compare behavior with receipts before promoting a mechanism into Brain Buddy canon.

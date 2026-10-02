@@ -59,6 +59,12 @@ The Jetson has a different primary role: it is infrastructure for bridges/worker
 
 Jetson science metadata pipelines are evidence sources. Brain Buddy may read/query their outputs and provenance, but normal Council/science discussion must not rewrite those pipeline outputs.
 
+### Future Jetson role
+
+The Jetson is also the intended experimental host for an early/crude implementation of the local two-state-machine brain. That is a future compute/agent role layered on top of its bridge and metadata-pipeline duties; it does not replace those duties.
+
+Keep this role modular: the experimental two-state brain may consume referenced state and participate as a worker when explicitly admitted, but its experiments must not silently mutate canonical repo state, metadata pipeline outputs, or Council history. Its implementation and tests belong on their own branches and must remain clearly labeled experimental until proven.
+
 Changing, disconnecting, or replacing a device must not lose Council state, Baseline Zero, Weight of Time, pending work, or receipts.
 
 No persistent repository clone is required on the phone or laptop. Device-specific bridges are transport adapters only; they do not define Council authority or session ownership.

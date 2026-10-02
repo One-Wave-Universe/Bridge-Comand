@@ -1,45 +1,36 @@
 #!/usr/bin/env python3
-"""Two-state Brain Buddy route selector: OBSERVE <-> ACT.
-
-Git/reference is authority. Routes are transports only. A failed route is observed,
-recorded, and the next route is tried; no empty HOLD state is created.
-"""
+"""Adaptive DeepSeek transport worker. OBSERVE selects; ACT delegates; failures re-enter OBSERVE."""
 from __future__ import annotations
-import argparse,json,os,subprocess,time,urllib.request
+import argparse,json,os,subprocess
 from pathlib import Path
 
-def probe(url,timeout=2):
-    try:
-        with urllib.request.urlopen(url,timeout=timeout) as r:
-            return r.status==200, r.read(512).decode(errors="replace")
-    except Exception as e: return False,str(e)
+SCIENCE=os.environ.get("ONE_WAVE_SCIENCE","/home/Scales/One-Wave-Science")
 
-def run(argv,timeout):
+def run(name,argv,prompt,timeout,env=None):
+    e=os.environ.copy()
+    if env:e.update(env)
     try:
-        p=subprocess.run(argv,text=True,capture_output=True,timeout=timeout)
-        return p.returncode==0,(p.stdout or "")+(p.stderr or "")
-    except Exception as e:return False,str(e)
+        p=subprocess.run(argv+[prompt],text=True,capture_output=True,timeout=timeout,env=e)
+        out=((p.stdout or "")+(p.stderr or "")).strip()
+        return {"route":name,"ok":p.returncode==0 and bool(out),"output":out[-16000:]}
+    except Exception as x:return {"route":name,"ok":False,"output":str(x)}
 
 def routes():
-    science=os.environ.get("ONE_WAVE_SCIENCE","/home/Scales/One-Wave-Science")
+    bridge=f"{SCIENCE}/One_Wave_Bench/hive-pipe/deepseek_web_bridge.py"
     return [
-      ("free-web-worker",["bash",f"{science}/scripts/deepseek_web_worker.sh"]),
-      ("firefox-session",["python3",f"{science}/One_Wave_Bench/hive-pipe/deepseek_web_bridge.py"]),
-      ("direct-model",["python3",f"{science}/One_Wave_Bench/hive-pipe/deepseek_bridge.py"]),
+      ("selenium-session-3001",["python3",bridge,"--max-tool-rounds","12"],
+       {"DEEPSEEK_WEB_BASE_URL":"http://127.0.0.1:3001","DEEPSEEK_WEB_API_KEY":"local-session"}),
+      ("canonical-free-web",["bash",f"{SCIENCE}/scripts/deepseek_web_worker.sh"],{}),
+      ("node-session-3000",["python3",bridge,"--max-tool-rounds","12"],
+       {"DEEPSEEK_WEB_BASE_URL":"http://127.0.0.1:3000","DEEPSEEK_WEB_API_KEY":"usb-local"}),
     ]
 
 def main():
-    ap=argparse.ArgumentParser();ap.add_argument("prompt");ap.add_argument("--timeout",type=int,default=120);ap.add_argument("--receipt",default="deepseek-route-receipt.json");a=ap.parse_args()
-    receipt={"schema":"brain-buddy-two-state-router/v1","state":"OBSERVE","attempts":[],"answer":None}
-    for name,cmd in routes():
-        receipt["state"]="OBSERVE"
-        # ACT only after selecting a concrete route; failures return to OBSERVE.
-        receipt["state"]="ACT"; ok,out=run(cmd+[a.prompt],a.timeout)
-        item={"route":name,"ok":ok,"output":out[-12000:]};receipt["attempts"].append(item)
-        if ok and out.strip():
-            receipt["answer"]=out.strip();receipt["selected_route"]=name;receipt["state"]="OBSERVE"
-            Path(a.receipt).write_text(json.dumps(receipt,indent=2));print(out.strip());return 0
-        receipt["state"]="OBSERVE"
-    Path(a.receipt).write_text(json.dumps(receipt,indent=2))
-    print(json.dumps(receipt,indent=2));return 1
+    a=argparse.ArgumentParser();a.add_argument("prompt");a.add_argument("--timeout",type=int,default=120);a.add_argument("--receipt",default="deepseek-route-receipt.json");x=a.parse_args()
+    rec={"schema":"brain-buddy-two-state-router/v2","state":"OBSERVE","attempts":[]}
+    for name,argv,env in routes():
+        rec["state"]="ACT"; item=run(name,argv,x.prompt,x.timeout,env);rec["attempts"].append(item);rec["state"]="OBSERVE"
+        if item["ok"]:
+            rec["selected_route"]=name;rec["answer"]=item["output"];Path(x.receipt).write_text(json.dumps(rec,indent=2));print(item["output"]);return 0
+    rec["answer"]=None;Path(x.receipt).write_text(json.dumps(rec,indent=2));print(json.dumps(rec,indent=2));return 1
 if __name__=="__main__":raise SystemExit(main())

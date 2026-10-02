@@ -64,3 +64,37 @@ Required order:
 BRAIN BUDDY ENTRY -> CURRENT BASELINE ZERO -> SHARED STATE / WEIGHT OF TIME -> OWNING REPO + CANON -> ROUTING AUTHORITY -> TASK-SPECIFIC REFERENCES -> CHOOSE CAPABILITY/ROUTE -> ACT -> RETURN RECEIPT/VIEW -> ADMIT/VALIDATE -> UPDATE SHARED STATE.
 
 If Brain Buddy entry cannot be completed, the worker MUST identify itself as unsynchronized and must not represent its answer as current Brain Buddy state.
+
+
+## Assumption / confusion interrupt — mandatory full re-reference
+
+Any material assumption, ambiguity, contradiction, stale-looking state, missing dependency, unclear ownership, uncertain route, uncertain terminology, or confusion MUST interrupt execution.
+
+The worker MUST NOT fill the gap from memory, habit, convenience, or inference and continue.
+
+Interrupt sequence:
+
+ASSUMPTION OR CONFUSION DETECTED
+-> STOP THE AFFECTED ACTION
+-> FULL BRAIN BUDDY RE-REFERENCE
+-> re-read current Baseline Zero and shared state
+-> re-read governing Brain Buddy entry/routing/reference rules
+-> re-reference the owning repo's canonical start/authority and the complete relevant reference chain
+-> search across the canonical One-Wave repos when ownership or dependency is uncertain
+-> inspect current branches/checkpoints/receipts and relevant metadata
+-> reconcile the question against Weight of Time, admitted VIEWs, unresolved contradictions, and latest human redirects
+-> retry resolution from evidence
+
+"Full repo reference" means broad enough repository/reference traversal to resolve the uncertainty; it does NOT mean cloning repositories or blindly loading every byte into context.
+
+If the re-reference still leaves more than one materially plausible interpretation, missing intent, or an unresolved decision that only Mark can settle, ASK MARK a concise explicit question before acting.
+
+When asking, state:
+- exactly what remains unclear,
+- the competing interpretations/options,
+- what was re-referenced,
+- and which action is blocked by the ambiguity.
+
+Do not ask Mark questions that the repos/shared state can answer. Re-reference first; ask only after the reference system cannot resolve it.
+
+After Mark answers, record the clarification as a human redirect/correction in Brain Buddy shared state so other workers inherit it and do not repeat the same assumption.

@@ -1,0 +1,10 @@
+{
+  "id": "g767-git-loop-20261003-01",
+  "question": "Evaluate G-767 spectral lattice phase using the repo-defined CERN CMS record 700 path. Focus on whether a density-preserving null removes apparent phase structure. Do not tune x0 on evaluation data. Converge toward supported conclusion, strongest objection, falsification condition, and next smallest experiment.",
+  "references": [
+    "sims/06-spectral-lattice-phase/README.md",
+    "sims/06-spectral-lattice-phase/spectral_lattice_phase.py",
+    "One_Wave_Bench/data/OPEN_DATA_WAVE_PIPELINE.md"
+  ],
+  "visible_views": []
+}

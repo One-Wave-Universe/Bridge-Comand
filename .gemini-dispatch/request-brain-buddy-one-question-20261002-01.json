@@ -1,0 +1,20 @@
+{
+  "schema": "one-wave-github-gemini/v2",
+  "id": "brain-buddy-one-question-20261002-gemini-01",
+  "question": "What is the smallest concrete improvement we can make to Brain Buddy while preserving its existing working back-and-forth behavior?",
+  "model": "gemini-3.5-flash",
+  "references": [
+    {
+      "repo": "One-Wave-Universe/One-Wave-Science",
+      "ref": "64537d18115c786699b6c0a87c32df4f1931d859",
+      "path": "BRAIN_BUDDY_COUNCIL.md"
+    },
+    {
+      "repo": "One-Wave-Universe/One-Wave-Science",
+      "ref": "64537d18115c786699b6c0a87c32df4f1931d859",
+      "path": "scripts/brain_buddy_council.py"
+    }
+  ],
+  "max_reference_chars": 120000,
+  "numeric_evidence_required": false
+}

@@ -49,11 +49,15 @@ Route health is explicit. A failed route is quarantined/backed off; the same req
 
 Never silently convert a provider failure into a different provider's answer.
 
-## Phone role
+## Device role
 
-The phone is a controller, not a required compute host. It may submit, redirect, inspect, admit results, and resume a Council session. Losing/replacing the phone must not lose Council state.
+The phone is simply another place to work from, alongside the laptop, Jetson, Chromebook, or another authorized device. It is not a special controller and no device owns Brain Buddy.
 
-No persistent repository clone is required on the phone or laptop.
+Any authorized device may enter the same persistent Brain Buddy session to submit work, redirect discussion, inspect state, admit results, continue Council work, or perform capabilities available on that device.
+
+Changing, disconnecting, or replacing a device must not lose Council state, Baseline Zero, Weight of Time, pending work, or receipts.
+
+No persistent repository clone is required on the phone or laptop. Device-specific bridges are transport adapters only; they do not define Council authority or session ownership.
 
 ## Persistence and recovery
 
@@ -90,7 +94,7 @@ PASS requires repeated tests of:
 - one route failure with authorized failover
 - duplicate request suppression
 - stale/late result admission
-- phone/controller disconnect and reconnect
+- device disconnect and reconnect
 - missing provider isolation (other workers continue)
 - no laptop internal-disk repo replication
 - branch-safe repo update

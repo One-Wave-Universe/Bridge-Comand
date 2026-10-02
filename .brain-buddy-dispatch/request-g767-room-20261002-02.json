@@ -1,0 +1,10 @@
+{
+  "id": "g767-brain-buddy-room-20261002-02",
+  "question": "Evaluate G-767 spectral lattice phase using the repo-defined CERN CMS record 700 path. Determine whether apparent phase coherence survives a density-preserving null. Do not tune x0 on evaluation data. Keep working from this original question; independently challenge other peer views and converge only where evidence supports it.",
+  "references": [
+    "sims/06-spectral-lattice-phase/README.md",
+    "sims/06-spectral-lattice-phase/spectral_lattice_phase.py",
+    "One_Wave_Bench/data/OPEN_DATA_WAVE_PIPELINE.md"
+  ],
+  "visible_views": []
+}

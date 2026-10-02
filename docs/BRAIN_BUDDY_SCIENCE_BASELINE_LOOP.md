@@ -123,3 +123,21 @@ Admission does not give the entering worker authority to rewrite the target proj
 An entering worker's prior context is evidence/context, not authority over the target loop. Results produced inside the target loop follow that loop's validation and branch rules.
 
 This mechanism should later support project loops voluntarily convening, borrowing workers, requesting specialist review, and returning useful results to their owning loops without collapsing all projects into one shared context.
+
+
+### Observe-before-participation
+
+Admission to a loop does not imply immediate speech or action. Unless the target loop explicitly requests active work, an entering worker begins in `WATCH/LISTEN/THINK`.
+
+In this state the worker:
+- receives the target Baseline Zero, relevant inherited Weight of Time and live loop events;
+- observes what participants are doing and the evidence they are using;
+- builds a private model of why the loop reached its present state and where its current trajectory appears to lead;
+- may follow references needed to understand the discussion;
+- does not edit, vote, redirect, or interrupt merely because it can produce an answer.
+
+After sufficient context, the worker may remain an observer or issue a participation request such as `REQUEST-SPEAK`, `REQUEST-WORK`, or `REQUEST-REVIEW`, stating what it believes it can contribute and why that contribution is useful now.
+
+A material contradiction, invalid reference, broken dependency, or other high-consequence finding may be raised as an interrupt candidate, but the target loop still controls how it is admitted and acted upon.
+
+This preserves the ordering: VIEW before ACTION. Cross-loop intelligence should first understand the living state and direction of a loop before attempting to change it.

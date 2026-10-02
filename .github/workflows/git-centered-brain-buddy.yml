@@ -1,24 +1,24 @@
-name: Git-Centered Brain Buddy Worker
+name: Git-Centered Brain Buddy
 on:
   push:
-    paths:
-      - ".brain-buddy-dispatch/request-*.json"
+    paths: [".brain-buddy-dispatch/request-*.json"]
 permissions:
   contents: read
 concurrency:
-  group: brain-buddy-worker
+  group: brain-buddy-room
   cancel-in-progress: false
 jobs:
-  reference:
+  room:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     env:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      JETSON_GATEWAY_URL: ${{ secrets.JETSON_GATEWAY_URL }}
+      JETSON_GATEWAY_TOKEN: ${{ secrets.JETSON_GATEWAY_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with: {fetch-depth: 2}
-      - name: Select Git request
+      - name: Select original question
         id: req
         shell: bash
         run: |
@@ -26,28 +26,50 @@ jobs:
           P="$(git diff --name-only HEAD^ HEAD -- '.brain-buddy-dispatch/request-*.json' | tail -n1)"
           test -n "$P"
           echo "path=$P" >> "$GITHUB_OUTPUT"
-      - name: Checkout canonical Science reference
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           repository: One-Wave-Universe/One-Wave-Science
           path: science
           fetch-depth: 1
-      - name: Build one shared Git evidence pack
+      - name: Reference Git once for every brain
         env:
           REQUEST_PATH: ${{ steps.req.outputs.path }}
-        run: |
-          python3 .brain-buddy-dispatch/git_worker.py evidence "$REQUEST_PATH" science shared-evidence.json
-      - name: Gemini acts from shared reference
+        run: python3 .brain-buddy-dispatch/git_worker.py evidence "$REQUEST_PATH" science shared-evidence.json
+      - name: Gemini peer acts
         if: ${{ env.GEMINI_API_KEY != '' }}
         env:
           REQUEST_PATH: ${{ steps.req.outputs.path }}
         run: python3 .brain-buddy-dispatch/git_worker.py gemini "$REQUEST_PATH" shared-evidence.json gemini-view.json
-      - name: DeepSeek acts from shared reference
-        if: ${{ env.DEEPSEEK_API_KEY != '' }}
+      - name: DeepSeek peer acts through Jetson adaptive routes
+        if: ${{ env.JETSON_GATEWAY_URL != '' && env.JETSON_GATEWAY_TOKEN != '' }}
         env:
           REQUEST_PATH: ${{ steps.req.outputs.path }}
-        run: python3 .brain-buddy-dispatch/git_worker.py deepseek "$REQUEST_PATH" shared-evidence.json deepseek-view.json
-      - name: Assemble visible state
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json,os,urllib.request
+          r=json.load(open(os.environ["REQUEST_PATH"]))
+          prompt=("BRAIN BUDDY PEER. Start from Git/canon. Independently answer the ORIGINAL QUESTION; "
+                  "inspect these repo paths on the Jetson as needed; challenge other views rather than echoing them. "
+                  "Return supported conclusion, strongest objection, falsification condition, next smallest test. "
+                  "Question: "+r["question"]+" References: "+", ".join(r.get("references",[])))
+          argv=["python3","/home/Scales/.local/share/brain-buddy/deepseek_two_state_router.py",
+                "--receipt","/tmp/brain-buddy-deepseek-receipt.json",prompt]
+          payload={"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"terminal_run","arguments":{
+            "argv":argv,"cwd":"/home/Scales/One-Wave-Science","timeout":300,
+            "intention":"Delegate the original Brain Buddy question to the DeepSeek peer through adaptive transports.",
+            "consequence":"Return a DeepSeek view without changing canonical Science."}}}
+          q=urllib.request.Request(os.environ["JETSON_GATEWAY_URL"].rstrip("/")+"/mcp",
+             data=json.dumps(payload).encode(),headers={"Authorization":"Bearer "+os.environ["JETSON_GATEWAY_TOKEN"],"Content-Type":"application/json"},method="POST")
+          try:
+            with urllib.request.urlopen(q,timeout=315) as x: z=json.load(x)
+            s=z.get("result",{}).get("structuredContent",{})
+            out=s.get("stdout","").strip()
+            json.dump({"actor":"DEEPSEEK","status":"COMPLETE" if out and s.get("exit_code")==0 else "FAILED","answer":out,"stderr":s.get("stderr",""),"route":"jetson-adaptive"},open("deepseek-view.json","w"),indent=2)
+          except Exception as e:
+            json.dump({"actor":"DEEPSEEK","status":"FAILED","error":str(e)},open("deepseek-view.json","w"),indent=2)
+          PY
+      - name: Assemble shared visible state
         if: always()
         env:
           REQUEST_PATH: ${{ steps.req.outputs.path }}
@@ -55,7 +77,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: git-centered-brain-buddy-state
+          name: brain-buddy-room-state
           path: |
             shared-evidence.json
             gemini-view.json

@@ -98,3 +98,20 @@ When asking, state:
 Do not ask Mark questions that the repos/shared state can answer. Re-reference first; ask only after the reference system cannot resolve it.
 
 After Mark answers, record the clarification as a human redirect/correction in Brain Buddy shared state so other workers inherit it and do not repeat the same assumption.
+
+
+## Full canonical repo lens — mandatory for Council workers
+
+A Brain Buddy worker MUST NOT be given a hand-picked note bundle as a substitute for repository reference.
+
+For every substantive One-Wave question, Gemini, DeepSeek, ChatGPT, Claude, and future workers MUST be given access/instructions to traverse the canonical owning repository as a repository lens. The worker starts at the repository canonical entry/authority, follows the repo-declared reference chain, searches the repository for the task's terms/dependencies, and opens whatever relevant files are required before answering.
+
+If the question crosses repository ownership or dependencies, the worker MUST traverse the other canonical One-Wave repositories needed to resolve it.
+
+Metadata is supplementary evidence when the question requires it. Metadata MUST NOT replace repository reference.
+
+A prompt may identify useful starting files, but those are entry points only and MUST NOT bound the worker's repository access or reasoning.
+
+Required worker sequence:
+
+FULL CANONICAL REPO LENS -> CANONICAL START/AUTHORITY -> REPO SEARCH/TRAVERSAL -> RELEVANT FILES/NODES/CHAPTERS -> METADATA WHEN NECESSARY -> EXTERNAL EVIDENCE WHEN NECESSARY -> REASON -> VALIDATE BACK AGAINST CURRENT REPO -> RETURN VIEW/RECEIPT.

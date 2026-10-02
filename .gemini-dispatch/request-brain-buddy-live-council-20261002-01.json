@@ -1,0 +1,18 @@
+{
+  "schema": "one-wave-github-gemini/v2",
+  "id": "brain-buddy-live-council-20261002-01",
+  "question": "Brain Buddy live Council test. Reference the supplied One-Wave repository canon first. Question: Given the current Brain Buddy design, what is the smallest concrete implementation change that would let Gemini and DeepSeek remain in an asynchronous back-and-forth while ChatGPT continues useful work, without counting agreement as evidence? Identify one failure mode and one observable test. Return this as a candidate VIEW, not canon.",
+  "numeric_evidence_required": false,
+  "references": [
+    {
+      "repo": "One-Wave-Universe/Bridge-Comand",
+      "ref": "recovery/brain-buddy-app-backforth-20261002",
+      "path": "docs/BRAIN_BUDDY_SCIENCE_AND_REPO_LOOPS_RUNTIME.md"
+    },
+    {
+      "repo": "One-Wave-Universe/Bridge-Comand",
+      "ref": "recovery/brain-buddy-app-backforth-20261002",
+      "path": "brain_buddy/brain_buddy_live.py"
+    }
+  ]
+}

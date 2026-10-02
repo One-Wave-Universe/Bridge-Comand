@@ -37,16 +37,19 @@ jobs:
           REQUEST_PATH: ${{ steps.req.outputs.path }}
         run: python3 .brain-buddy-dispatch/git_worker.py evidence "$REQUEST_PATH" science shared-evidence.json
       - name: Gemini peer acts
+        continue-on-error: true
         if: ${{ env.GEMINI_API_KEY != '' }}
         env:
           REQUEST_PATH: ${{ steps.req.outputs.path }}
         run: python3 .brain-buddy-dispatch/git_worker.py gemini "$REQUEST_PATH" shared-evidence.json gemini-view.json
       - name: ChatGPT peer acts
+        continue-on-error: true
         if: ${{ env.OPENAI_API_KEY != '' }}
         env:
           REQUEST_PATH: ${{ steps.req.outputs.path }}
         run: python3 .brain-buddy-dispatch/git_worker.py chatgpt "$REQUEST_PATH" shared-evidence.json chatgpt-view.json
       - name: DeepSeek peer acts through Jetson adaptive routes
+        continue-on-error: true
         if: ${{ env.JETSON_GATEWAY_URL != '' && env.JETSON_GATEWAY_TOKEN != '' }}
         env:
           REQUEST_PATH: ${{ steps.req.outputs.path }}
@@ -87,6 +90,7 @@ jobs:
           path: |
             shared-evidence.json
             gemini-view.json
+            chatgpt-view.json
             deepseek-view.json
             brain-buddy-state.json
           if-no-files-found: warn

@@ -1,0 +1,13 @@
+{
+  "schema": "one-wave-jetson-command-request/v1",
+  "id": "brain-buddy-deepseek-gateway-20261002-01",
+  "argv": [
+    "python3",
+    "hive-pipe/deepseek_web_bridge.py",
+    "Brain Buddy recovery smoke. Reply with exactly DEEPSEEK_COUNCIL_RETURN_OK and REQUEST_ID: brain-buddy-deepseek-gateway-20261002-01. Do not run tools."
+  ],
+  "cwd": "/home/Scales/Bridge-Comand",
+  "timeout": 180,
+  "intention": "Verify DeepSeek returns through the existing authorized Jetson web bridge.",
+  "consequence": "Read-only Brain Buddy provider smoke; no repository or system mutation requested."
+}

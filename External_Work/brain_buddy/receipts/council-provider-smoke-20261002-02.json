@@ -1,0 +1,15 @@
+{
+  "schema": "one-wave-brain-buddy-provider-smoke/v1",
+  "request_id": "council-provider-smoke-20261002-02",
+  "providers": {
+    "gemini": {
+      "ok": true,
+      "model": "gemini-3.5-flash",
+      "answer": "Google (Gemini)\nBRAIN_BUDDY_COUNCIL_OK\n\nREQUEST_ID: council-provider-smoke-20261002-02"
+    },
+    "deepseek": {
+      "ok": false,
+      "error_code": "DEEPSEEK_API_KEY_MISSING"
+    }
+  }
+}

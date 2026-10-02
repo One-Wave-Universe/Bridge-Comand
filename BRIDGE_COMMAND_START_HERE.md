@@ -159,6 +159,33 @@ Reconvergence must be able to:
 
 Every meaningful flip crosses the reference/center again.
 
+### Governed GitHub node + chapter update loop
+
+Brain Buddy's back-and-forth dialogue must be able to turn a validated finding into a governed GitHub update in the **owning repository**, including One-Wave-Science nodes and book chapters. This is an ACTION-DOWN capability of the greater loop, not an automatic side effect of worker speech.
+
+Required path:
+
+`DIALOGUE/VIEW -> REFERENCE OWNING NODE/CHAPTER -> PROPOSE PATCH -> CHALLENGE/VALIDATE -> AUTHORIZE BOUNDED ACTION -> CREATE/USE GOAL BRANCH -> EDIT -> CHECK DIFF/STRUCTURE/TESTS -> COMMIT -> READ BACK COMMIT/FILES -> ADMIT RESULT AS VIEW -> REFERENCE NEW STATE`
+
+For One-Wave-Science:
+- read `AI_CANONICAL_START_HERE.md` and applicable general/governance reference rules before mutation;
+- locate the exact governed node(s), chapter status map, and chapter file(s) affected;
+- preserve node IDs, lifecycle/gate/classification metadata, aliases, evidence/provenance, and established-vs-hypothesis distinctions;
+- update a node, a chapter, or both according to ownership and meaning; do not duplicate the same doctrine into unrelated files;
+- keep separate books/canons separate; never move material between books merely because the dialogue touched both;
+- use a new goal/recovery branch from the referenced known-good state; never silently edit main;
+- make the smallest coherent patch and retain the dialogue/request IDs that motivated it;
+- validate the patch against the source VIEWs, references, evidence, and current repo structure before commit;
+- read back the committed files and commit SHA after the write; a write API response alone is not sufficient validation;
+- return the commit, changed paths, validation state, unresolved contradictions, and provenance to Brain Buddy as a new VIEW/CHECK result;
+- only then may the greater loop treat the committed branch state as a candidate new Baseline Zero.
+
+Worker agreement alone cannot authorize a scientific claim update. A provider's statement is a VIEW. Scientific status changes require the applicable One-Wave evidence/governance rules and must preserve `ESTABLISHED`, `TESTED`, `UNVERIFIED`, `HYPOTHESIS`, `ASSUMPTION`, `FAILED`, or `BLOCKED` status accurately.
+
+Brain Buddy must also support repo-maintenance updates that are not scientific claims—such as implementation notes, simulator state, test receipts, chapter drafting status, or cross-reference repair—while preserving the owning repo's rules.
+
+The human application surface must expose proposed repo mutations before consequential writes, show the target repo/branch/files, and display the resulting commit/check state afterward. Internal dialogue may continue in parallel while a repo action is pending; it must not falsely assume the mutation succeeded until the committed files are read back.
+
 ### Persistence and restart
 
 The application must resume the same live dialogue after restart or device change. Persist enough state that restart does not turn Brain Buddy into a new conversation.

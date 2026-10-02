@@ -51,9 +51,13 @@ Never silently convert a provider failure into a different provider's answer.
 
 ## Device role
 
-The phone is simply another place to work from, alongside the laptop, Jetson, Chromebook, or another authorized device. It is not a special controller and no device owns Brain Buddy.
+The phone is simply another place to work from, alongside the laptop, Chromebook, or another authorized interactive device. It is not a special controller and no interactive device owns Brain Buddy.
 
-Any authorized device may enter the same persistent Brain Buddy session to submit work, redirect discussion, inspect state, admit results, continue Council work, or perform capabilities available on that device.
+Any authorized interactive device may enter the same persistent Brain Buddy session to submit work, redirect discussion, inspect state, admit results, continue Council work, or perform capabilities available on that device.
+
+The Jetson has a different primary role: it is infrastructure for bridges/workers and a pipeline/access point for metadata and machine-local evidence. It may execute bounded worker or transport tasks when needed, but it is not primarily a human Brain Buddy workstation and it does not own Council state or science authority.
+
+Jetson science metadata pipelines are evidence sources. Brain Buddy may read/query their outputs and provenance, but normal Council/science discussion must not rewrite those pipeline outputs.
 
 Changing, disconnecting, or replacing a device must not lose Council state, Baseline Zero, Weight of Time, pending work, or receipts.
 

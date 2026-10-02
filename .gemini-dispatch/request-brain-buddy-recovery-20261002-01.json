@@ -1,0 +1,15 @@
+{
+  "schema": "one-wave-github-gemini/v2",
+  "id": "brain-buddy-recovery-20261002-01",
+  "question": "Brain Buddy recovery smoke test. Reply with exactly GEMINI_COUNCIL_RETURN_OK and REQUEST_ID: brain-buddy-recovery-20261002-01. Do not claim any machine execution.",
+  "model": "gemini-3.5-flash",
+  "references": [
+    {
+      "repo": "One-Wave-Universe/Bridge-Comand",
+      "ref": "recovery/brain-buddy-council-runtime-20261002",
+      "path": "brain_buddy/brain_buddy_council.py"
+    }
+  ],
+  "numeric_evidence_required": false,
+  "max_reference_chars": 50000
+}

@@ -1,0 +1,31 @@
+{
+  "schema": "one-wave-github-gemini/v2",
+  "id": "brain-buddy-g767-gemini-20261003-01",
+  "question": "Brain Buddy round: evaluate G-767 Spectral Lattice Phase using CERN CMS record 700. Explain why the density-preserving null is required over the current log-uniform null. Do not tune x0 on evaluation data. Give supported conclusion, strongest objection, falsification condition, and next smallest experiment. This answer will be given to ChatGPT and DeepSeek for critique.",
+  "numeric_evidence_required": true,
+  "references": [
+    {
+      "repo": "One-Wave-Universe/One-Wave-Science",
+      "ref": "main",
+      "path": "sims/06-spectral-lattice-phase/README.md"
+    },
+    {
+      "repo": "One-Wave-Universe/One-Wave-Science",
+      "ref": "main",
+      "path": "sims/06-spectral-lattice-phase/spectral_lattice_phase.py"
+    },
+    {
+      "repo": "One-Wave-Universe/One-Wave-Science",
+      "ref": "main",
+      "path": "One_Wave_Bench/data/OPEN_DATA_WAVE_PIPELINE.md"
+    }
+  ],
+  "metadata_requests": [
+    {
+      "provider": "CERN Open Data",
+      "purpose": "CMS record 700 official metadata and file provenance",
+      "url": "https://opendata.cern.ch/api/records/700",
+      "max_bytes": 500000
+    }
+  ]
+}

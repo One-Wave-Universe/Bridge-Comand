@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}\n      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       JETSON_GATEWAY_URL: ${{ secrets.JETSON_GATEWAY_URL }}
       JETSON_GATEWAY_TOKEN: ${{ secrets.JETSON_GATEWAY_TOKEN }}
     steps:
@@ -40,6 +40,11 @@ jobs:
         env:
           REQUEST_PATH: ${{ steps.req.outputs.path }}
         run: python3 .brain-buddy-dispatch/git_worker.py gemini "$REQUEST_PATH" shared-evidence.json gemini-view.json
+      - name: ChatGPT peer acts
+        if: ${{ env.OPENAI_API_KEY != '' }}
+        env:
+          REQUEST_PATH: ${{ steps.req.outputs.path }}
+        run: python3 .brain-buddy-dispatch/git_worker.py chatgpt "$REQUEST_PATH" shared-evidence.json chatgpt-view.json
       - name: DeepSeek peer acts through Jetson adaptive routes
         if: ${{ env.JETSON_GATEWAY_URL != '' && env.JETSON_GATEWAY_TOKEN != '' }}
         env:

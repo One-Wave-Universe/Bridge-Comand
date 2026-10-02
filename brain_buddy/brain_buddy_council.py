@@ -145,15 +145,14 @@ def run_worker(root: Path, worker: str, prompt: str) -> dict[str, Any]:
     elif worker == "gemini":
         worker_env.setdefault("GEMINI_WEB_BASE_URL", "http://192.168.55.100:3001")
 
-    try:
-        p = subprocess.run(
-            cmd,
-            cwd=root,
-            text=True,
-            capture_output=True,
-            check=False,
-            env=worker_env,
-        )
+    p = subprocess.run(
+        cmd,
+        cwd=root,
+        text=True,
+        capture_output=True,
+        check=False,
+        env=worker_env,
+    )
     stdout = p.stdout.strip()
     stderr = p.stderr.strip()
     answer = stdout
@@ -355,7 +354,7 @@ def main() -> int:
             if mode == "gemini-deepseek"
             else ("deepseek", "gemini")
         )
-        r1 = run_worker(root, first, base, args.timeout)
+        r1 = run_worker(root, first, base)
         print_result(r1)
         turns.append({"speaker": first, "text": r1["answer"] or r1["stderr"]})
         if r1["ok"]:

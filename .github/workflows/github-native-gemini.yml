@@ -257,3 +257,5 @@ jobs:
           name: github-native-gemini-receipt
           if-no-files-found: warn
           path: gemini-receipt.json
+
+# recovery activation: brain-buddy-live-council-20261002

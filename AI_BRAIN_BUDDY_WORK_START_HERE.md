@@ -194,7 +194,9 @@ Do not configure background watchers, services, login jobs, profile-copy jobs, s
 
 Before any AI proposes a laptop-side clone/copy as a convenience, it must choose a non-copying reference/remote route if that can satisfy the task.
 
-Intentional working checkouts on Jetson or another designated build machine are allowed when execution genuinely requires them, subject to that machine's storage and branch rules.
+If persistent laptop-attached storage becomes genuinely necessary for full clones, multiple worktrees, large caches, build artifacts, model assets or datasets, STOP before placing them on the laptop's internal disk. Prefer setting up a designated external drive as the Brain Buddy workspace. Keep repositories/worktrees/caches under an explicit external-drive root and verify the drive is mounted before starting jobs. If the external drive is absent, fail/block cleanly rather than silently redirecting large writes to the internal disk.
+
+Intentional working checkouts on Jetson, a designated external laptop drive, or another designated build machine are allowed when execution genuinely requires them, subject to that storage target's branch and capacity rules.
 
 ## Required branch work note
 

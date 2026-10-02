@@ -1,0 +1,5 @@
+{
+  "schema": "one-wave-brain-buddy-smoke-request/v1",
+  "id": "council-provider-smoke-20261002-02",
+  "question": "Brain Buddy Council recovery test. Reply with your provider identity and BRAIN_BUDDY_COUNCIL_OK. Do not claim repository or machine access."
+}

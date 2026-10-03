@@ -13,13 +13,13 @@ class MainActivity:Activity(){
  private lateinit var status:TextView; private lateinit var vault:SecretVault; private lateinit var hub:HubStore; private lateinit var prefs:HubPrefs
  override fun onCreate(b:Bundle?){super.onCreate(b);vault=SecretVault(this);hub=HubStore(this);prefs=HubPrefs(this)
   val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(28,28,28,28)}
-  root.addView(TextView(this).apply{text="ONE-WAVE AI HUB v0.4"})
-  root.addView(TextView(this).apply{text="Configure keys, start the hub, then close this screen. The service continues with a persistent notification."})
+  root.addView(TextView(this).apply{text="BRAIN BUDDY — REFERENCE GATE APP"})
+  root.addView(TextView(this).apply{text="All AI work enters through conversation + repository reference before provider execution."})
   val start=Button(this).apply{text="START / REPAIR HUB";setOnClickListener{startHub()}}
   val stop=Button(this).apply{text="STOP HUB";setOnClickListener{stopHub()}}
   val keys=Button(this).apply{text="AI PROVIDER KEYS";setOnClickListener{providerDialog()}}
   idBox=field("Request ID");refBox=field("Reference URL");bodyBox=field("Message / returned response",true)
-  val run=Button(this).apply{text="TEST GEMINI DIRECT";setOnClickListener{runGemini()}}
+  val run=Button(this).apply{text="SEND THROUGH REFERENCE GATE";setOnClickListener{runGemini()}}
   val hs=Button(this).apply{text="BRIDGE DOCTOR STATUS";setOnClickListener{showStatus()}}
   status=TextView(this)
   listOf(start,stop,keys,idBox,refBox,bodyBox,run,hs,status).forEach{root.addView(it)}
@@ -36,8 +36,8 @@ class MainActivity:Activity(){
  override fun onNewIntent(i:Intent){super.onNewIntent(i);setIntent(i);ingest(i)}
  private fun ingest(i:Intent){if(i.action==Intent.ACTION_SEND&&i.type=="text/plain"){val t=i.getStringExtra(Intent.EXTRA_TEXT).orEmpty();bodyBox.setText(t);Regex("REQUEST_ID:\\s*([^\\s]+)").find(t)?.groupValues?.get(1)?.let{idBox.setText(it)}}}
  private fun runGemini(){val id=idBox.text.toString().trim();val ref=refBox.text.toString().trim();val q=bodyBox.text.toString().trim()
-  if(id.isEmpty()||ref.isEmpty()||q.isEmpty()||!Regex("[A-Za-z0-9._-]{1,120}").matches(id)){status.text="HOLD: valid ID, reference and message required";return}
-  status.text="Calling Gemini...";hub.write("outbox",id,JSONObject().put("id",id).put("state","REQUEST").put("reference",ref).put("message",q))
+  if(id.isEmpty()||ref.isEmpty()||q.isEmpty()||!Regex("[A-Za-z0-9._-]{1,120}").matches(id)){status.text="GATE BLOCKED: conversation + repository reference + valid ID required";return}
+  status.text="REFERENCE GATE OPEN: conversation + repository reference present; calling worker...";hub.write("outbox",id,JSONObject().put("id",id).put("state","REQUEST").put("reference",ref).put("message",q))
   thread{try{val response=GeminiClient(vault).generate(id,ref,q);val sha=MessageDigest.getInstance("SHA-256").digest(response.toByteArray()).joinToString(""){"%02x".format(it)}
    val receipt=JSONObject().put("schema","one-wave-phone-ai-relay/v1").put("state","RESPONSE").put("id",id).put("source","gemini").put("target","chatgpt").put("reference",ref).put("response",response).put("response_sha256",sha).put("ok",true)
    hub.write("inbox",id,JSONObject().put("id",id).put("state","RESPONSE").put("response",response));hub.write("receipts",id,receipt);prefs.touchHealthy();runOnUiThread{bodyBox.setText(response);status.text="RESPONSE VERIFIED: $id"}

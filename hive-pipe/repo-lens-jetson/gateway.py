@@ -4,7 +4,7 @@
 Only the specified owner's Repo Lens GitHub Actions workflow can call it.
 There is no shell, filesystem, repository-write or credential-export endpoint.
 """
-import base64, hashlib, http.server, json, os, socket, threading, time, subprocess, pathlib
+import base64, hashlib, http.server, json, os, socket, threading, time, subprocess, pathlib, re
 import urllib.request, urllib.error, urllib.parse
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
@@ -22,6 +22,19 @@ ACTOR_LOCKS={actor:threading.Lock() for actor in ['GPT','CLAUDE','GROK']}
 CODEX='/home/Scales/.local/share/repo-lens/codex-runtime-0.160.0/bin/codex'
 CLAUDE='/home/Scales/.local/share/repo-lens/claude-runtime-2.1.288/bin/claude'
 MAX_METADATA=2000000
+class UsageLimit(ValueError): pass
+
+def client_usage_limit(result):
+    if not result.returncode:return False
+    # Classify only a failed client's controlled error fields, never echo its output.
+    messages=[]
+    for line in result.stdout.splitlines():
+        try:item=json.loads(line)
+        except ValueError:continue
+        if not isinstance(item,dict):continue
+        if item.get('is_error'):messages.append(str(item.get('result','')))
+        if item.get('type') in {'error','turn.failed'}:messages.append(json.dumps(item.get('error',{})))
+    return bool(re.search(r"hit your (?:session|usage) limit|usage limit reached|rate limit|insufficient_quota|credit_balance_exhausted",' '.join(messages),re.I))
 HOSTS={
  'opendata.cern.ch':'CERN Open Data',
  'www.hepdata.net':'HEPData', 'hepdata.net':'HEPData',
@@ -91,6 +104,7 @@ def chat(body):
         prompt=system+'\n\n'+body['prompt']
         args=[binary,'exec','--ignore-user-config','--ephemeral','--skip-git-repo-check','--sandbox','read-only','--json','--color','never','-'] if actor=='GPT' else [binary,'-p','--output-format','json','--tools','','--no-session-persistence']
         with ACTOR_LOCKS[actor]:r=subprocess.run(args,input=prompt,capture_output=True,text=True,cwd=str(pathlib.Path(__file__).parent),timeout=240)
+        if client_usage_limit(r):raise UsageLimit('Provider usage limit reached')
         if r.returncode:raise ValueError(actor+' client failed; check local sign-in and plan limits')
         if actor=='GPT':
             events=[json.loads(line) for line in r.stdout.splitlines() if line.startswith('{')]
@@ -145,7 +159,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif self.path=='/chat':out=chat(body)
             else:self.send(404,{'error':'Not found'});return
             self.send(200,out)
-        except urllib.error.HTTPError as e:self.send(502,{'error':'Upstream HTTP '+str(e.code)})
+        except UsageLimit:self.send(429,{'error':{'code':'provider_rate_limit'}})
+        except urllib.error.HTTPError as e:
+            if self.path=='/chat' and e.code==429:self.send(429,{'error':{'code':'provider_rate_limit'}})
+            else:self.send(502,{'error':'Upstream HTTP '+str(e.code)})
         except Exception as e:self.send(400,{'error':str(e) if isinstance(e,ValueError) else type(e).__name__})
 
 if __name__=='__main__':http.server.ThreadingHTTPServer(('127.0.0.1',int(os.environ.get('REPO_LENS_PORT','8778'))),Handler).serve_forever()

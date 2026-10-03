@@ -3,6 +3,14 @@ from unittest.mock import patch
 import gateway
 
 class Trust(unittest.TestCase):
+    def test_claude_quota_is_controlled_and_not_echoed(self):
+        result=subprocess.CompletedProcess([],1,json.dumps({'is_error':True,'result':"You've hit your session limit · resets later PRIVATE"}),'secret')
+        with patch('gateway.pathlib.Path.exists',return_value=True),patch('gateway.subprocess.run',return_value=result):
+            with self.assertRaises(gateway.UsageLimit) as caught:gateway.chat({'actor':'CLAUDE','prompt':'question'})
+        self.assertEqual(str(caught.exception),'Provider usage limit reached')
+    def test_successful_answer_and_auth_error_are_not_quota(self):
+        for result in [subprocess.CompletedProcess([],0,json.dumps({'result':'rate limit'}),''),subprocess.CompletedProcess([],1,json.dumps({'is_error':True,'result':'Please sign in'}),'')]:
+            self.assertFalse(gateway.client_usage_limit(result))
     def claims(self):return {'iss':gateway.ISSUER,'aud':gateway.AUDIENCE,'repository':gateway.REPOSITORY,'repository_owner':'One-Wave-Universe','ref':gateway.BRANCH,'workflow_ref':gateway.WORKFLOW,'event_name':'push','exp':time.time()+60}
     def test_owner_workflow(self):gateway.validate_claims(self.claims())
     def test_other_repository(self):

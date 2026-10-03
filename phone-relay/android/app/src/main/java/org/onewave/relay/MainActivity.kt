@@ -6,12 +6,13 @@ import android.text.InputType
 import android.widget.*
 import androidx.core.content.ContextCompat
 import org.json.JSONObject
+import org.json.JSONArray
 import java.security.MessageDigest
 import kotlin.concurrent.thread
 class MainActivity:Activity(){
  private lateinit var idBox:EditText; private lateinit var refBox:EditText; private lateinit var bodyBox:EditText
- private lateinit var status:TextView; private lateinit var vault:SecretVault; private lateinit var hub:HubStore; private lateinit var prefs:HubPrefs
- override fun onCreate(b:Bundle?){super.onCreate(b);vault=SecretVault(this);hub=HubStore(this);prefs=HubPrefs(this)
+ private lateinit var status:TextView; private lateinit var vault:SecretVault; private lateinit var hub:HubStore; private lateinit var prefs:HubPrefs; private lateinit var gate:BrainBuddyGate
+ override fun onCreate(b:Bundle?){super.onCreate(b);vault=SecretVault(this);hub=HubStore(this);prefs=HubPrefs(this);gate=BrainBuddyGate(this,vault)
   val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(28,28,28,28)}
   root.addView(TextView(this).apply{text="ONE-WAVE AI HUB v0.4"})
   root.addView(TextView(this).apply{text="Configure keys, start the hub, then close this screen. The service continues with a persistent notification."})
@@ -36,11 +37,17 @@ class MainActivity:Activity(){
  override fun onNewIntent(i:Intent){super.onNewIntent(i);setIntent(i);ingest(i)}
  private fun ingest(i:Intent){if(i.action==Intent.ACTION_SEND&&i.type=="text/plain"){val t=i.getStringExtra(Intent.EXTRA_TEXT).orEmpty();bodyBox.setText(t);Regex("REQUEST_ID:\\s*([^\\s]+)").find(t)?.groupValues?.get(1)?.let{idBox.setText(it)}}}
  private fun runGemini(){val id=idBox.text.toString().trim();val ref=refBox.text.toString().trim();val q=bodyBox.text.toString().trim()
-  if(id.isEmpty()||ref.isEmpty()||q.isEmpty()||!Regex("[A-Za-z0-9._-]{1,120}").matches(id)){status.text="HOLD: valid ID, reference and message required";return}
-  status.text="Calling Gemini...";hub.write("outbox",id,JSONObject().put("id",id).put("state","REQUEST").put("reference",ref).put("message",q))
-  thread{try{val response=GeminiClient(vault).generate(id,ref,q);val sha=MessageDigest.getInstance("SHA-256").digest(response.toByteArray()).joinToString(""){"%02x".format(it)}
-   val receipt=JSONObject().put("schema","one-wave-phone-ai-relay/v1").put("state","RESPONSE").put("id",id).put("source","gemini").put("target","chatgpt").put("reference",ref).put("response",response).put("response_sha256",sha).put("ok",true)
-   hub.write("inbox",id,JSONObject().put("id",id).put("state","RESPONSE").put("response",response));hub.write("receipts",id,receipt);prefs.touchHealthy();runOnUiThread{bodyBox.setText(response);status.text="RESPONSE VERIFIED: $id"}
-  }catch(e:Exception){runOnUiThread{status.text="HOLD: "+(e.message?:e.javaClass.simpleName)}}}
+  if(id.isEmpty()||ref.isEmpty()||q.isEmpty()||!Regex("[A-Za-z0-9._-]{1,120}").matches(id)){status.text="HOLD: valid ID, repo branch/ref and message required";return}
+  status.text="Brain Buddy: referencing conversation + repo..."
+  thread{try{
+   val conversation=JSONArray().put(JSONObject().put("speaker","mark").put("text",q).put("source","current-app-turn"))
+   val repo=JSONObject().put("owner","One-Wave-Universe").put("repo","Bridge-Comand").put("ref",ref).put("canonical_start","BRIDGE_COMMAND_START_HERE.md").put("paths",JSONArray().put("brain_buddy/BRAIN_BUDDY_REFERENCE_GATE_V0.md"))
+   val gated=gate.open(id,q,conversation,repo)
+   hub.write("outbox",id,JSONObject().put("id",id).put("state","GATED_REQUEST").put("reference_packet_sha256",gated.sha256))
+   val response=GeminiClient(vault).generate(id,"BRAIN_BUDDY_GATE:"+gated.sha256,gated.json)
+   val sha=MessageDigest.getInstance("SHA-256").digest(response.toByteArray()).joinToString(""){"%02x".format(it)}
+   val receipt=JSONObject().put("schema","one-wave-brain-buddy-app/v1").put("state","RESPONSE").put("id",id).put("source","gemini").put("reference_packet_sha256",gated.sha256).put("response",response).put("response_sha256",sha).put("ok",true)
+   hub.write("inbox",id,JSONObject().put("id",id).put("state","RESPONSE").put("response",response));hub.write("receipts",id,receipt);prefs.touchHealthy();runOnUiThread{bodyBox.setText(response);status.text="BRAIN BUDDY RESPONSE VERIFIED: $id"}
+  }catch(e:Exception){runOnUiThread{status.text="GATE HOLD: "+(e.message?:e.javaClass.simpleName)}}}
  }
 }

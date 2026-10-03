@@ -92,6 +92,49 @@ def fetch_metadata(query):
     source=json.loads(raw)
     return {'provider':HOSTS[urllib.parse.urlsplit(final).hostname],'requested_url':url,'final_url':final,'purpose':purpose,'retrieved_at':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'worker':'Jetson','hostname':socket.gethostname(),'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'http_metadata':headers,'source_kind':'metadata','source_record':source,'pagination':'Provider pagination fields remain in source_record. This receipt covers this endpoint response, not unrequested archive pages.','units_calibration_quality':'Preserved where present in unchanged source_record; missing fields are unknown.'}
 
+METADATA_ROOT=pathlib.Path('/home/Scales/One-Wave-Science/.one-wave-metadata')
+
+def metadata_tool(query):
+    if not isinstance(query,dict):raise ValueError('Metadata request must be an object')
+    op=query.get('operation','live-query')
+    if op=='live-query':
+        if set(query)-{'operation','url','purpose'}:raise ValueError('Unknown metadata argument')
+        return fetch_metadata(query)
+    if op not in {'catalog','list','read'}:raise ValueError('Unknown metadata operation')
+    if set(query)-{'operation','relative_path','purpose'}:raise ValueError('Unknown metadata argument')
+    purpose=query.get('purpose')
+    if not isinstance(purpose,str) or not 1<=len(purpose)<=2000:raise ValueError('Metadata purpose required')
+    root=METADATA_ROOT.resolve()
+    base={'worker':'Jetson','retrieved_at':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'operation':op,'purpose':purpose,'metadata_root':str(root),'metadata_root_available':root.is_dir()}
+    if op=='catalog':
+        return {**base,'status':'COMPLETE','tools':[
+            {'operation':'live-query','arguments':['url','purpose'],'hosts':HOSTS,'examples':['https://opendata.cern.ch/api/records/?size=1','https://gwosc.org/api/v2/catalogs/'],'receipt':'Unchanged JSON, URL, retrieval time and SHA256; pagination is explicit.'},
+            {'operation':'list','arguments':['purpose'],'description':'List local metadata files without executing a pipeline.'},
+            {'operation':'read','arguments':['relative_path','purpose'],'description':'Read one complete local JSON snapshot; byte budget and path containment enforced.'}],
+            'local_status':'AVAILABLE' if root.is_dir() else 'MISSING',
+            'pipeline_execution':'Not exposed by these read-only tools; no local ingestion or analysis run claimed.'}
+    if not root.is_dir():
+        return {**base,'status':'MISSING','error':'Configured Jetson metadata root is absent; no stored pipeline output read.'}
+    if op=='list':
+        files=[]
+        for p in root.rglob('*'):
+            if p.is_symlink() or not p.is_file():continue
+            resolved=p.resolve()
+            if not resolved.is_relative_to(root):continue
+            if len(files)>=2000:raise ValueError('Metadata listing exceeds budget; no partial list returned')
+            files.append({'relative_path':str(p.relative_to(root)),'bytes':p.stat().st_size})
+        return {**base,'status':'COMPLETE','files':sorted(files,key=lambda x:x['relative_path'])}
+    rel=query.get('relative_path')
+    if not isinstance(rel,str) or not rel or len(rel)>1000:raise ValueError('Metadata relative_path required')
+    relative=pathlib.Path(rel)
+    if relative.is_absolute() or '..' in relative.parts:raise ValueError('Metadata path escaped root')
+    p=(root/relative).resolve()
+    if not p.is_relative_to(root) or not p.is_file():raise ValueError('Metadata file unavailable inside root')
+    with p.open('rb') as f:raw=f.read(MAX_METADATA+1)
+    if len(raw)>MAX_METADATA:raise ValueError('Metadata exceeds byte budget; no partial data returned')
+    source=json.loads(raw)
+    return {**base,'status':'COMPLETE','provider':'Jetson stored metadata','source_kind':'stored-metadata','relative_path':rel,'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'source_record':source,'provenance':'Stored snapshot returned unchanged. Retrieval time is read time, not original provider acquisition time.'}
+
 def chat(body):
     if not isinstance(body.get('prompt'),str) or not 1<=len(body['prompt'])<=240000:raise ValueError('Prompt must be 1..240000 characters')
     system=str(body.get('system',''))
@@ -155,7 +198,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             n=int(self.headers.get('Content-Length','0'))
             if not 0<n<=1000000:raise ValueError('Request size outside limit')
             body=json.loads(self.rfile.read(n))
-            if self.path=='/metadata':out=fetch_metadata(body)
+            if self.path=='/metadata':out=metadata_tool(body)
             elif self.path=='/chat':out=chat(body)
             else:self.send(404,{'error':'Not found'});return
             self.send(200,out)

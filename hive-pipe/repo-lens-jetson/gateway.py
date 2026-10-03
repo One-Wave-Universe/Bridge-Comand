@@ -108,7 +108,7 @@ def metadata_tool(query):
     base={'worker':'Jetson','retrieved_at':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'operation':op,'purpose':purpose,'metadata_root':str(root),'metadata_root_available':root.is_dir()}
     if op=='catalog':
         return {**base,'status':'COMPLETE','tools':[
-            {'operation':'live-query','arguments':['url','purpose'],'hosts':HOSTS,'examples':['https://opendata.cern.ch/api/records/?size=1','https://gwosc.org/api/v2/catalogs/'],'receipt':'Unchanged JSON, URL, retrieval time and SHA256; pagination is explicit.'},
+            {'operation':'live-query','arguments':['url','purpose'],'hosts':HOSTS,'examples':['https://opendata.cern.ch/api/records/?size=1','https://gwosc.org/api/v2/catalogs'],'receipt':'Unchanged JSON, URL, retrieval time and SHA256; pagination is explicit.'},
             {'operation':'list','arguments':['purpose'],'description':'List local metadata files without executing a pipeline.'},
             {'operation':'read','arguments':['relative_path','purpose'],'description':'Read one complete local JSON snapshot; byte budget and path containment enforced.'}],
             'local_status':'AVAILABLE' if root.is_dir() else 'MISSING',

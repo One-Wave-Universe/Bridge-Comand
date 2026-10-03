@@ -35,3 +35,17 @@ Configured /home/Scales/One-Wave-Science/.one-wave-metadata is absent. Search be
 No real stored local snapshot read or local ingestion/analysis execution claimed.
 Continuous independent AI app workers remain unfinished and were outside this repair.
 Exact target receipt: /home/Scales/.local/share/repo-lens/metadata-tools-verification-20261003.json.
+
+
+## Cache repair completed — 2026-10-03T18:55:59Z
+The absent documented cache was rebuilt from fresh provider responses, not recovered historical files.
+Bounded refresher: refresh_metadata.py, commit d87ad68eace5eae924dbb87cc20e345dfc41d8a7.
+No timers, automatic retries, repository clone, bulk detector data or science-code changes.
+Two immutable provider-native JSON snapshots plus separate acquisition receipts were saved at the documented Jetson path.
+CERN: 21656 bytes, SHA256 cbf94107cf49a71759150b6ef988d27f44c4bca3fd4c5913de527dfd160a1d19.
+GWOSC v2 catalogs: 10102 bytes, SHA256 fcd8eef741cb536010539f3e42e6bb5d3a5e0fb7a120289fe95b8a1711f59e0c.
+Both saved responses were read back through gateway.metadata_tool(operation=read), the same dispatcher used by council query_metadata, and compared to the complete parsed provider response and original byte hash.
+List returns COMPLETE with four files; catalog local_status is now AVAILABLE.
+Store size: 33465 bytes. Existing Science edits and untracked files preserved; only .one-wave-metadata/ was added as an untracked runtime cache.
+State: RESOLVED for rebuilding this bounded metadata cache and verifying local list/read operations.
+Remaining boundaries: historical snapshots were not recovered; this is not all CERN records, all GWOSC strain data, execution of every analysis pipeline, or proof that an AI has called the tool through a new OIDC workflow. Provider pagination remains in the raw snapshot; absent normalized pagination fields are unknown.

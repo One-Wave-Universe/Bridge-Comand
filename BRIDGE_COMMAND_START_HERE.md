@@ -32,6 +32,28 @@ Codex, ChatGPT, Gemini, Claude, DeepSeek, Perplexity, local Qwen/OpenClaw, phone
 
 Required status words are: `ESTABLISHED`, `IMPLEMENTED`, `TESTED`, `UNVERIFIED`, `HYPOTHESIS`, `ASSUMPTION`, `FAILED`, and `BLOCKED`.
 
+## Terminal availability is per session
+
+Discover the calling AI's own tools first. Another AI's Desktop Commander device
+receipt does not attach tools to this session. Use a direct device terminal when
+exposed; a GitHub-only client uses the configured pull relay and requires its own
+matching return. Science's [terminal entrypoint](https://github.com/One-Wave-Universe/One-Wave-Science/blob/main/AI_BRIDGE_START_HERE.md)
+provides the device selection examples.
+
+Pull intake and result delivery have independent circuit-breaker state:
+`read_routes` governs fetch/poll; `routes` governs publication. Missing write
+credentials may block delivery without preventing a read-only route from
+accepting and executing a bounded request. Completed results remain in the
+durable outbox. A matching connector-published result can reconcile completion
+without re-execution. Delayed old results are archived and cannot replace a
+newer request's current result.
+
+The connector-assisted return is an explicit recovery lane: an authorized client
+reads a real target receipt and publishes that exact ID/digest through its GitHub
+connector. It is not proof that the target's unattended git push works.
+See [the recovery receipt](hive-pipe/PULL_RECOVERY_2026-10-04.md) for execution,
+deployment and the remaining authentication boundary.
+
 ## Current lanes
 
 ### Jetson / Hive Pipe MCP

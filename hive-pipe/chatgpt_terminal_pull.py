@@ -27,8 +27,8 @@ import tempfile
 import time
 from typing import Any, Iterable
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-REPO_ROOT = SCRIPT_DIR.parent
+SCRIPT_DIR = Path(os.environ.get("CHATGPT_TERMINAL_MODULE_DIR", str(Path(__file__).resolve().parent))).resolve()
+REPO_ROOT = Path(os.environ.get("CHATGPT_TERMINAL_TRANSPORT_ROOT", str(SCRIPT_DIR.parent))).resolve()
 sys.path.insert(0, str(SCRIPT_DIR))
 import terminal_parser  # noqa: E402
 import reference_receipt  # noqa: E402
@@ -176,11 +176,12 @@ class StateStore:
 class TransportStateMachine:
     """Circuit breaker and route scorer for inbound and outbound Git paths."""
 
-    def __init__(self, routes: list[Route], store: StateStore, clock=time.time):
+    def __init__(self, routes: list[Route], store: StateStore, clock=time.time, direction: str = "write"):
         self.routes = routes
         self.store = store
         self.clock = clock
-        state = self.store.data.setdefault("routes", {})
+        self.bucket = "read_routes" if direction == "read" else "routes"
+        state = self.store.data.setdefault(self.bucket, {})
         for route in routes:
             state.setdefault(route.key, {
                 "state": "closed",
@@ -190,7 +191,7 @@ class TransportStateMachine:
             })
 
     def health(self, route: Route) -> dict[str, Any]:
-        return self.store.data["routes"][route.key]
+        return self.store.data[self.bucket][route.key]
 
     def ordered(self, preferred: Route | None = None) -> list[Route]:
         now = self.clock()
@@ -287,6 +288,25 @@ def validate_request(raw: str) -> dict[str, Any]:
     return normalized
 
 
+def published_result(route: Route, request: dict[str, Any]) -> dict[str, Any] | None:
+    """Recognize a connector-assisted return before executing a mirrored request."""
+    archive = f".chatgpt-terminal/results/{request['id']}.json"
+    hashed = ".chatgpt-terminal/results/" + hashlib.sha256(request["id"].encode()).hexdigest() + ".json"
+    for path in (RESULT_PATH, archive, hashed):
+        shown = run_git("show", f"{route.ref}:{path}", check=False)
+        if shown.returncode:
+            continue
+        try:
+            result = json.loads(shown.stdout)
+        except (ValueError, TypeError):
+            continue
+        if (isinstance(result, dict) and result.get("id") == request["id"]
+                and result.get("request_digest") == request["digest"]
+                and result.get("completed_at")):
+            return result
+    return None
+
+
 def result_path(request_id: str) -> Path:
     safe_id = hashlib.sha256(request_id.encode("utf-8")).hexdigest()
     return OUTBOX_DIR / f"{safe_id}.json"
@@ -344,6 +364,20 @@ def execute_request(request: dict[str, Any], commit: str, source: Route) -> dict
         }
 
 
+def result_destinations(worktree: Path, result: dict[str, Any]) -> list[Path]:
+    """Archive old replies; never let a retry replace a newer request's return."""
+    paths = [worktree / ".chatgpt-terminal" / "results" /
+             (hashlib.sha256(str(result["id"]).encode()).hexdigest() + ".json")]
+    try:
+        current = validate_request((worktree / REQUEST_PATH).read_text())
+        if (current["id"] == result.get("id")
+                and current["digest"] == result.get("request_digest")):
+            paths.append(worktree / RESULT_PATH)
+    except (OSError, ValueError, TypeError):
+        pass
+    return paths
+
+
 def publish_result(result: dict[str, Any], route: Route) -> None:
     """Publish through one route without touching the user's active checkout."""
     fetch_route(route)
@@ -354,10 +388,12 @@ def publish_result(result: dict[str, Any], route: Route) -> None:
             text=True, capture_output=True, check=True,
         )
         try:
-            destination = worktree / RESULT_PATH
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-            subprocess.run(["git", "-C", str(worktree), "add", RESULT_PATH], check=True)
+            destinations = result_destinations(worktree, result)
+            for destination in destinations:
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(worktree), "add",
+                            *[str(p.relative_to(worktree)) for p in destinations]], check=True)
             changed = subprocess.run(
                 ["git", "-C", str(worktree), "diff", "--cached", "--quiet"], check=False,
             ).returncode != 0
@@ -486,6 +522,15 @@ class RequestStateMachine:
             return self.deliver(request_id, route)
 
         previous = self._entry(request["id"])
+        # A conflicting journal digest still wins over any external receipt.
+        if not previous or previous.get("digest") == request["digest"]:
+            returned = published_result(route, request)
+            if returned is not None:
+                self._set(request["id"], phase="acknowledged", digest=request["digest"],
+                          source_route=route.key, request_commit=commit,
+                          completed_at=returned["completed_at"],
+                          reconciled_from_published_receipt=True)
+                return False
         if previous:
             if previous.get("digest") != request["digest"]:
                 # Reusing an id for a different command is rejected; it is never executed.
@@ -537,6 +582,7 @@ class BridgeController:
     def __init__(self, routes: list[Route], store: StateStore | None = None):
         self.store = store or StateStore()
         self.transport = TransportStateMachine(routes, self.store)
+        self.reader = TransportStateMachine(routes, self.store, direction="read")
         self.requests = RequestStateMachine(self.store, self.transport)
 
     def cycle(self) -> bool:
@@ -547,15 +593,15 @@ class BridgeController:
         activity = False
         self.store.data["controller"]["state"] = "polling"
         self.store.save()
-        for route in self.transport.ordered():
+        for route in self.reader.ordered():
             try:
                 found = read_request(route)
-                self.transport.success(route)
+                self.reader.success(route)
                 if found is not None:
                     commit, raw = found
                     activity = self.requests.accept(route, commit, raw) or activity
             except Exception as exc:
-                self.transport.failure(route, exc)
+                self.reader.failure(route, exc)
         self.store.data["controller"].update({
             "state": "idle",
             "last_cycle_completed_at": utc_now(),
@@ -590,7 +636,7 @@ def main() -> int:
             controller.cycle()
         except Exception as exc:
             print(f"CHATGPT_TERMINAL_BRIDGE_ERROR {type(exc).__name__}: {exc}", file=sys.stderr)
-        time.sleep(controller.transport.next_delay())
+        time.sleep(controller.reader.next_delay())
 
 
 if __name__ == "__main__":

@@ -52,6 +52,21 @@ class PullIsolation(unittest.TestCase):
              patch.object(b,"write_result"),patch.object(c.requests,"deliver",return_value=False):
             c.requests.accept(self.route,"commit",json.dumps(self.request()))
             result.assert_not_called();execute.assert_not_called()
+    def test_old_reply_cannot_replace_current_result(self):
+        root=Path(self.tmp.name)
+        (root / b.REQUEST_PATH).parent.mkdir()
+        (root / b.REQUEST_PATH).write_text(json.dumps(self.request()))
+        paths=b.result_destinations(root,{"id":"old","request_digest":"old"})
+        self.assertNotIn(root / b.RESULT_PATH,paths)
+        self.assertEqual(len(paths),1)
+    def test_matching_reply_updates_current_and_archive(self):
+        root=Path(self.tmp.name)
+        (root / b.REQUEST_PATH).parent.mkdir()
+        (root / b.REQUEST_PATH).write_text(json.dumps(self.request()))
+        req=b.validate_request(json.dumps(self.request()))
+        paths=b.result_destinations(root,{"id":req["id"],"request_digest":req["digest"]})
+        self.assertIn(root / b.RESULT_PATH,paths)
+        self.assertEqual(len(paths),2)
     def test_read_failure_backoff_still_applies(self):
         r=b.TransportStateMachine([self.route],self.store,clock=lambda:10,direction="read")
         r.failure(self.route,"fetch timeout")

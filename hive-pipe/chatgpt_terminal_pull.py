@@ -291,7 +291,8 @@ def validate_request(raw: str) -> dict[str, Any]:
 def published_result(route: Route, request: dict[str, Any]) -> dict[str, Any] | None:
     """Recognize a connector-assisted return before executing a mirrored request."""
     archive = f".chatgpt-terminal/results/{request['id']}.json"
-    for path in (RESULT_PATH, archive):
+    hashed = ".chatgpt-terminal/results/" + hashlib.sha256(request["id"].encode()).hexdigest() + ".json"
+    for path in (RESULT_PATH, archive, hashed):
         shown = run_git("show", f"{route.ref}:{path}", check=False)
         if shown.returncode:
             continue
@@ -363,6 +364,20 @@ def execute_request(request: dict[str, Any], commit: str, source: Route) -> dict
         }
 
 
+def result_destinations(worktree: Path, result: dict[str, Any]) -> list[Path]:
+    """Archive old replies; never let a retry replace a newer request's return."""
+    paths = [worktree / ".chatgpt-terminal" / "results" /
+             (hashlib.sha256(str(result["id"]).encode()).hexdigest() + ".json")]
+    try:
+        current = validate_request((worktree / REQUEST_PATH).read_text())
+        if (current["id"] == result.get("id")
+                and current["digest"] == result.get("request_digest")):
+            paths.append(worktree / RESULT_PATH)
+    except (OSError, ValueError, TypeError):
+        pass
+    return paths
+
+
 def publish_result(result: dict[str, Any], route: Route) -> None:
     """Publish through one route without touching the user's active checkout."""
     fetch_route(route)
@@ -373,10 +388,12 @@ def publish_result(result: dict[str, Any], route: Route) -> None:
             text=True, capture_output=True, check=True,
         )
         try:
-            destination = worktree / RESULT_PATH
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-            subprocess.run(["git", "-C", str(worktree), "add", RESULT_PATH], check=True)
+            destinations = result_destinations(worktree, result)
+            for destination in destinations:
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(worktree), "add",
+                            *[str(p.relative_to(worktree)) for p in destinations]], check=True)
             changed = subprocess.run(
                 ["git", "-C", str(worktree), "diff", "--cached", "--quiet"], check=False,
             ).returncode != 0

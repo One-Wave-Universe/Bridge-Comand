@@ -36,8 +36,13 @@ def unwrap(raw, public_key):
     crypto("verify", public_key, data, sig)
     return json.loads(data), hashlib.sha256(data).hexdigest()
 
+def request_digest(q):
+    action = {k: v for k, v in q.items() if k != "issued_at"}
+    return hashlib.sha256(json.dumps(action, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
 def handle(raw):
-    q, digest = unwrap(raw, CONFIG / "peer-public.pem")
+    q, _ = unwrap(raw, CONFIG / "peer-public.pem")
+    digest = request_digest(q)
     rid = q.get("id")
     if not isinstance(rid, str) or not 1 <= len(rid) <= 128:
         raise ValueError("invalid request id")
@@ -72,6 +77,9 @@ def handle(raw):
     return result
 
 class Handler(BaseHTTPRequestHandler):
+    def setup(self):
+        super().setup()
+        self.connection.settimeout(10)
     def log_message(self, *args):
         pass
     def do_POST(self):
@@ -102,7 +110,7 @@ def client(args):
                                  headers={"Content-Type": "application/json"}, method="POST")
     with urllib.request.urlopen(req, timeout=min(300, int(q.get("timeout", 30))) + 15) as r:
         result, _ = unwrap(r.read(2 * 1024 * 1024), CONFIG / "peer-public.pem")
-    _, digest = unwrap(raw, CONFIG / "public.pem")
+    digest = request_digest(q)
     if result.get("id") != q.get("id") or result.get("request_sha256") != digest or result.get("target") != q["target"]:
         raise ValueError("return does not match issued request")
     print(json.dumps(result, indent=2))

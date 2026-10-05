@@ -1,7 +1,7 @@
 import importlib.util,pathlib,sys,unittest
 from unittest.mock import patch
 HERE=pathlib.Path(__file__).parent
-sys.path.insert(0,'/tmp/ow-bridge-runtime-20261005/hive-pipe')
+sys.path.insert(0,str(HERE))
 def module(name):
  s=importlib.util.spec_from_file_location(name,HERE/(name+'.py'));m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
 g=module('gemini_web_bridge');d=module('deepseek_web_bridge')

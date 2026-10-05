@@ -91,6 +91,10 @@ def pull_checks():
     return [row("pull bridge","PASS" if ok else "FAIL",
                 "primary and backup branches reachable" if ok else (p.stderr.strip() or str(sorted(names))))]
 
+def overall_exit(checks):
+    statuses = {x['status'] for x in checks}
+    return 1 if 'FAIL' in statuses else 2 if statuses & {'WARN','NOT_VERIFIED','NOT_CONFIGURED'} else 0
+
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--profile",choices=["ci","gateway","pull","all"],default="all")
@@ -99,9 +103,7 @@ def main():
     checks=static_checks()
     if args.profile in ("gateway","all"): checks += gateway_checks()
     if args.profile in ("pull","all"): checks += pull_checks()
-    fail=any(x["status"]=="FAIL" for x in checks)
-    warn=any(x["status"]=="WARN" for x in checks)
-    code=1 if fail else (2 if warn else 0)
+    code=overall_exit(checks)
     if args.json: print(json.dumps({"profile":args.profile,"exit_code":code,"checks":checks},indent=2))
     else: print(f"\nBRIDGE_DOCTOR_EXIT={code}")
     raise SystemExit(code)

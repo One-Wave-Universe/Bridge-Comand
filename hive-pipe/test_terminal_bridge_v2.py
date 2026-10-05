@@ -99,12 +99,12 @@ class TerminalBridgeV2Tests(unittest.TestCase):
 
     def test_pull_holds_missing_intent_and_records_original_result(self):
         raw = {"id": "receipt-test", "argv": ["printf", "PULL_OK"],
-               "cwd": str(Path(__file__).resolve().parents[2]), "timeout": 30}
+               "cwd": str(terminal_parser.REPO_ROOT), "timeout": 30}
         with self.assertRaisesRegex(ValueError, "intention"):
             bridge.validate_request(json.dumps(raw))
         raw.update(intention="Verify pull command", consequence="Expect PULL_OK and exit zero")
         with tempfile.TemporaryDirectory() as td:
-            test_root = Path(__file__).resolve().parents[2]
+            test_root = terminal_parser.REPO_ROOT
             with mock.patch.dict(os.environ, {"REFERENCE_GATE_LEDGER": str(Path(td) / "receipts.jsonl"),
                                              "ONE_WAVE_PROJECT_ROOT": str(test_root),
                                              "HIVE_PIPE_ALLOWED_ROOTS": str(test_root)}), \

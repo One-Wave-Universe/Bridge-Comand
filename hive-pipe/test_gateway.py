@@ -21,7 +21,7 @@ class GatewayTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         root = Path(self.temp.name)
         self.ledger = root / "reference-receipts.jsonl"
-        self.project_root = Path(__file__).resolve().parents[2]
+        self.project_root = terminal_parser.REPO_ROOT
         self.ledger_env = mock.patch.dict(os.environ, {
             "REFERENCE_GATE_LEDGER": str(self.ledger),
             "ONE_WAVE_PROJECT_ROOT": str(self.project_root),

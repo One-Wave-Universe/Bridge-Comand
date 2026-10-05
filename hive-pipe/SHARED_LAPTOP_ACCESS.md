@@ -45,3 +45,5 @@ GitHub edits alone are not execution proof; the matching signed return is.
 
 Jetson client returned target `scales-Latitude-E7450`, user `scales`, stdout `scales-Latitude-E7450\n`, and exit 0.
 Live checks also passed for identical duplicate receipt reuse, forged-signature rejection, request-ID collision rejection, expired-request rejection, and wrong-target rejection.
+
+GitHub-only end-to-end proof: [run 37388422990](https://github.com/One-Wave-Universe/Bridge-Comand/actions/runs/37388422990), triggered by a request file written through the GitHub connector, returned request `github-only-laptop-20261005-03`, target `scales-Latitude-E7450`, hostname stdout, exit 0, and `LAPTOP_COMMAND_RECEIPT_VERIFIED`. A follow-up live check confirmed that an identical action with a refreshed signing timestamp returns the original receipt without re-execution.

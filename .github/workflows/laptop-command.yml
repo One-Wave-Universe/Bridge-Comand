@@ -1,0 +1,70 @@
+name: Laptop Command Relay
+on:
+  push:
+    paths:
+      - ".laptop-dispatch/request.json"
+  workflow_dispatch:
+    inputs:
+      request_json:
+        description: "JSON: id, argv, cwd, timeout, intention, consequence"
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: laptop-command-relay
+  cancel-in-progress: false
+jobs:
+  command:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GATEWAY_URL: ${{ secrets.JETSON_GATEWAY_URL }}
+      GATEWAY_TOKEN: ${{ secrets.JETSON_GATEWAY_TOKEN }}
+      REQUEST_JSON: ${{ inputs.request_json }}
+      EVENT_NAME: ${{ github.event_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Issue laptop command and read signed return
+        run: |
+          python3 - <<'PY'
+          import json, os, sys, urllib.request
+          from pathlib import Path
+          q = json.loads(Path(".laptop-dispatch/request.json").read_text() if os.environ["EVENT_NAME"] == "push" else os.environ["REQUEST_JSON"])
+          for field in ("id", "argv", "intention", "consequence"):
+              if not q.get(field):
+                  raise SystemExit("Missing required field: " + field)
+          q.setdefault("cwd", "/home/scales")
+          q.setdefault("timeout", 30)
+          q["target"] = "scales-Latitude-E7450"
+          q.pop("issued_at", None)
+          body = json.dumps(q, separators=(",", ":"))
+          if len(body) > 4096:
+              raise SystemExit("Request exceeds the upstream argv limit")
+          url, token = os.environ["GATEWAY_URL"], os.environ["GATEWAY_TOKEN"]
+          if not url or not token:
+              raise SystemExit("Configure Jetson gateway secrets in Bridge-Comand")
+          arguments = {
+              "argv": ["python3", "/home/Scales/.local/state/signed_laptop_relay.py", "client", "--request-json", body],
+              "cwd": "/home/Scales/One-Wave-Science",
+              "timeout": min(300, int(q["timeout"]) + 30),
+              "intention": q["intention"],
+              "consequence": q["consequence"]
+          }
+          payload = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                     "params": {"name": "terminal_run", "arguments": arguments}}
+          req = urllib.request.Request(url.rstrip("/") + "/mcp", data=json.dumps(payload).encode(),
+                    headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"})
+          with urllib.request.urlopen(req, timeout=330) as response:
+              env = json.load(response)
+          result = env.get("result", {}).get("structuredContent", {})
+          if result.get("exit_code") != 0:
+              print(result.get("stderr", ""))
+              print(result.get("stdout", ""))
+              raise SystemExit("Laptop relay command failed; reconcile this request id before retry")
+          receipt = json.loads(result["stdout"])
+          if receipt.get("id") != q["id"] or receipt.get("target") != q["target"] or receipt.get("exit_code") != 0:
+              raise SystemExit("Laptop receipt mismatch or command failure")
+          print(json.dumps(receipt, indent=2))
+          print("LAPTOP_COMMAND_RECEIPT_VERIFIED")
+          PY

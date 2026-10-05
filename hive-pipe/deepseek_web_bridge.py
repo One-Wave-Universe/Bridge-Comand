@@ -108,11 +108,13 @@ class DeepSeekWebAgent:
         *,
         web_api_key: str | None = None,
         base_url: str | None = None,
+        no_tools: bool = False,
         deepthink: bool = True,
         web_search: bool = False,
         expert_mode: bool = False,
         post_json: Callable[[str, dict[str, Any], dict[str, str], int], dict[str, Any]] = _json_post,
     ) -> None:
+        self.no_tools = no_tools
         self.mcp = mcp
         self.web_api_key = (web_api_key or _load_web_key()).strip()
         if not self.web_api_key:
@@ -128,7 +130,7 @@ class DeepSeekWebAgent:
     def _chat(self, messages: list[dict[str, Any]]) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "messages": messages,
-            "tools": DEEPSEEK_TOOLS,
+            "tools": [] if self.no_tools else DEEPSEEK_TOOLS,
             "extra_body": {
                 "deepthink": self.deepthink,
                 "web_search": self.web_search,
@@ -178,6 +180,7 @@ class DeepSeekWebAgent:
             if not tool_calls:
                 return assistant_message["content"]
 
+            if self.no_tools:raise RuntimeError("Unexpected tool call in packet-only mode")
             for tool_call in tool_calls:
                 if not isinstance(tool_call, dict):
                     raise RuntimeError("DeepSeek web relay returned a malformed tool call")
@@ -221,6 +224,7 @@ def main(argv: list[str] | None = None) -> int:
         )
     )
     parser.add_argument("prompt", nargs="*", help="Task for DeepSeek; reads stdin when omitted.")
+    parser.add_argument("--no-tools", action="store_true")
     parser.add_argument("--no-deepthink", action="store_true")
     parser.add_argument("--web-search", action="store_true")
     parser.add_argument("--expert-mode", action="store_true")
@@ -259,6 +263,7 @@ def main(argv: list[str] | None = None) -> int:
 
     agent = DeepSeekWebAgent(
         mcp,
+        no_tools=args.no_tools,
         deepthink=not args.no_deepthink,
         web_search=args.web_search,
         expert_mode=args.expert_mode,

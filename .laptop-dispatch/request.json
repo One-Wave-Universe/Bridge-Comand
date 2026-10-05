@@ -1,0 +1,10 @@
+{
+  "id": "github-only-laptop-final-20261005-05",
+  "argv": [
+    "hostname"
+  ],
+  "cwd": "/home/scales",
+  "timeout": 30,
+  "intention": "Verify final shared laptop relay before app maintenance",
+  "consequence": "Return the Latitude hostname with exit zero without edits"
+}

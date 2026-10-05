@@ -2,6 +2,10 @@
 
 This repository is the single authority for One-Wave bridge, relay, remote-execution, metadata, and AI-to-AI transport work.
 
+## Shared laptop fallback for clients without direct tools
+
+See [Shared laptop access](hive-pipe/SHARED_LAPTOP_ACCESS.md). GitHub-only clients can push `.laptop-dispatch/request.json` on an isolated branch and read their own Laptop Command Relay job receipt. The Jetson relays the signed request to the Latitude; this targets the laptop rather than the old Jetson-only pull worker.
+
 ## Latest verified access — 2026-10-05
 
 This section supersedes the dated September handover and missing-secret reports below.

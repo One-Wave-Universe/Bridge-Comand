@@ -1,0 +1,10 @@
+{
+  "id": "github-only-laptop-20261005-03",
+  "argv": [
+    "hostname"
+  ],
+  "cwd": "/home/scales",
+  "timeout": 30,
+  "intention": "Verify GitHub-only client reaches the laptop without Desktop Commander",
+  "consequence": "Return scales-Latitude-E7450 with exit zero without repository modifications"
+}

@@ -120,3 +120,22 @@ A valid ingest must actually query the public endpoint, persist raw metadata sep
 Use `METADATA_AND_HANDOFF_CONTRACT.md` for Foreman jobs, worker handoffs, Jetson Brain FIELD/GPU ↔ VOID/CPU routing, AI adapters, simulator jobs, public-data metadata, and machine receipts. Schemas: `schemas/one-wave-envelope-v1.schema.json` and `schemas/one-wave-receipt-v1.schema.json`.
 
 Preserve `real|simulated|test` source class end-to-end. Raw public metadata stays separate from transformed One-Wave representations. A worker may return evidence but does not self-promote a Foreman job to DONE.
+
+## Virtual Breadboard / Perfboard validation
+
+Circuit and cell builds are validated on the simulator under **Builds**, not by inventing success from docs:
+
+`One-Wave-Universe/Builds` → `Virtual_Breadboard/`
+
+Full add-on (breadboard vs perfboard, `simulate.js`, AI build→test→receipt loop, PASS vs MODELED):
+
+[`VIRTUAL_BOARD_VALIDATION.md`](VIRTUAL_BOARD_VALIDATION.md)
+
+Quick path:
+
+```bash
+cd /path/to/Builds/Virtual_Breadboard
+node simulate.js experiments/brain_cell_001.json
+```
+
+A receipt with status `MODELED` is simulated evidence only. Do not promote it to PHYSICAL PASS or Foreman DONE without the matching bench/hardware receipt.

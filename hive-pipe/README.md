@@ -197,3 +197,7 @@ See:
 AI_JETSON_TOOL_GUIDE.md
 JETSON_AI_ACCESS.md
 ```
+
+## Virtual board validation
+
+For validating circuits/builds on Virtual Breadboard and virtual perfboard (Builds tree), see [`VIRTUAL_BOARD_VALIDATION.md`](VIRTUAL_BOARD_VALIDATION.md).

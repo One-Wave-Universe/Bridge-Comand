@@ -1,10 +1,10 @@
 {
-  "id": "github-only-laptop-20261005-03",
+  "id": "github-only-laptop-final-20261005-05",
   "argv": [
     "hostname"
   ],
   "cwd": "/home/scales",
   "timeout": 30,
-  "intention": "Verify GitHub-only client reaches the laptop without Desktop Commander",
-  "consequence": "Return scales-Latitude-E7450 with exit zero without repository modifications"
+  "intention": "Verify final shared laptop relay before app maintenance",
+  "consequence": "Return the Latitude hostname with exit zero without edits"
 }

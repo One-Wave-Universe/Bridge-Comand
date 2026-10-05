@@ -2,6 +2,26 @@
 
 This repository is the single authority for One-Wave bridge, relay, remote-execution, metadata, and AI-to-AI transport work.
 
+## Latest verified access — 2026-10-05
+
+This section supersedes the dated September handover and missing-secret reports below.
+
+- Desktop Commander: both `localhost.localdomain` (ARM/Jetson) and `scales-Latitude-E7450` returned terminal identity receipts on 2026-10-05. Use `list_devices`, then `start_process` with the selected device ID.
+- Jetson local Hive Pipe: `bridge_doctor.py --profile all` returned `BRIDGE_DOCTOR_EXIT=0`, including the exact gateway marker and reachable primary/backup Git transport branches. Branch reachability alone does not establish a fresh pull-mailbox round trip.
+- Moved GitHub workflows: `JETSON_GATEWAY_URL` and `JETSON_GATEWAY_TOKEN` were missing in Bridge-Comand while present in Science. Both are now configured in Bridge-Comand from the live tunnel and existing protected Codex token; no token was regenerated or committed.
+- GitHub -> public relay -> Jetson terminal -> GitHub receipt: [run 37387521891](https://github.com/One-Wave-Universe/Bridge-Comand/actions/runs/37387521891) succeeded with `BRIDGE_GITHUB_20261005_OK`, exit 0, cwd `/home/Scales/One-Wave-Science`.
+- Jetson metadata listing through the moved workflow: [run 37387525171](https://github.com/One-Wave-Universe/Bridge-Comand/actions/runs/37387525171) succeeded, returned metadata paths, and exited 0. This proves metadata-file access, not every external provider.
+- Gateway, queue worker, quick tunnel, pull worker, live-machine executor, Desktop Commander, and DeepSeek peer services were active/enabled. Provider services being active does not prove a new model response. `GEMINI_API_KEY` and `OPENAI_API_KEY` secret names exist in Bridge-Comand; their provider validity was not tested here.
+- Bootstrap, route-goblin, and bridge-watchdog timers were scheduled and running. Their oneshot services can legitimately be inactive between timer ticks.
+
+### Commands for the next AI
+
+Workflows belong to `One-Wave-Universe/Bridge-Comand`; science commands use cwd `/home/Scales/One-Wave-Science`, and build commands use the owning Builds checkout. Dispatch `.github/workflows/jetson-command.yml` on `main` with `argv_json`, `cwd`, `timeout`, `intention`, and `consequence`. Read the completed job log and exact returned output before declaring success. Use `.github/workflows/jetson-science-metadata.yml` for metadata operations.
+
+Remote Desktop Commander shells may lack user-service environment variables. On the verified ARM account, prefix user-systemd commands with `XDG_RUNTIME_DIR=/run/user/2002 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/2002/bus`. Obtain `id -u` and the runtime path afresh on other devices. Do not query system service state to classify user services.
+
+The current relay is a quick tunnel. Its URL can change after restart. Obtain the current URL from system journal records for `_SYSTEMD_USER_UNIT=hive-pipe-cloudflared.service`; the old `~/.local/state/hive-pipe/cloudflared.log` was stale. Probe it with the saved token before updating repository secrets. Synchronize credentials to the repository that owns the workflow. A stable named tunnel and automatic URL-secret synchronization remain unverified.
+
 ## Operating law
 
 REFERENCE GIT -> ASK/PIVOT -> REFERENCE METADATA/CENTER-FLIP -> VALIDATE/PIVOT -> UPDATE REFERENCE/CENTER-FLIP -> REFERENCE.

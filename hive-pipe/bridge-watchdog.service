@@ -1,0 +1,9 @@
+[Unit]
+Description=One-Wave Bridge watchdog
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Bridge-Comand
+ExecStart=/usr/bin/python3 %h/Bridge-Comand/hive-pipe/bridge_doctor.py --repair --probe

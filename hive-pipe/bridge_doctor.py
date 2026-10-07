@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, json, os, pathlib, subprocess
+import argparse, json, os, pathlib, subprocess, time
 from urllib.request import Request, urlopen
 
 HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parent
 SCIENCE = pathlib.Path(os.environ.get("ONE_WAVE_SCIENCE_ROOT", os.environ.get("ONE_WAVE_PROJECT_ROOT", str(pathlib.Path.home() / "One-Wave-Science"))))
 MCP_URL = os.environ.get("HIVE_PIPE_MCP_URL", "http://127.0.0.1:8765/mcp")
-MARKER = "BRIDGE_DOCTOR_GATEWAY_OK"
+MARKER = "BRIDGE_DOCTOR_GATEWAY_OK"\nQUEUE = HERE / "queue"\nQUEUE_DIRS = ("pending","processing","results","done","failed")
 
 def run(argv, cwd=None, timeout=20):
     return subprocess.run(argv, cwd=cwd or ROOT, text=True, capture_output=True, timeout=timeout, check=False)
@@ -42,6 +42,34 @@ def mcp_call(tok,name,args):
     result=env.get("result",{}).get("structuredContent")
     if not isinstance(result,dict): raise RuntimeError("missing structuredContent")
     return result
+
+def recover_stale(seconds=300):
+    """Recover abandoned queue leases without duplicating completed jobs."""
+    pending=QUEUE/"pending"; processing=QUEUE/"processing"
+    pending.mkdir(parents=True,exist_ok=True)
+    moved=[]
+    if not processing.is_dir(): return moved
+    now=time.time()
+    for f in processing.glob("*.json"):
+        if (QUEUE/"results"/f.name).exists() or (QUEUE/"done"/f.name).exists():
+            continue
+        if now-f.stat().st_mtime >= seconds:
+            target=pending/f.name
+            if not target.exists():
+                os.replace(f,target); moved.append(f.name)
+    return moved
+
+def recovery_checks(repair=False, stale_seconds=300):
+    out=[]
+    if repair:
+        for d in QUEUE_DIRS: (QUEUE/d).mkdir(parents=True,exist_ok=True)
+        moved=recover_stale(stale_seconds)
+        out.append(row("queue recovery","PASS",f"recovered {len(moved)} stale job(s)"))
+    for d in QUEUE_DIRS:
+        p=QUEUE/d
+        out.append(row("queue "+d,"PASS" if p.is_dir() else "WARN",
+                       str(p) if p.is_dir() else "missing; run --repair"))
+    return out
 
 def static_checks():
     out=[]
@@ -98,9 +126,9 @@ def overall_exit(checks):
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--profile",choices=["ci","gateway","pull","all"],default="all")
-    ap.add_argument("--json",action="store_true")
+    ap.add_argument("--json",action="store_true")\n    ap.add_argument("--repair",action="store_true",help="create recovery queue dirs and recover stale processing leases")\n    ap.add_argument("--stale-seconds",type=int,default=300)
     args=ap.parse_args()
-    checks=static_checks()
+    checks=static_checks() + recovery_checks(args.repair,args.stale_seconds)
     if args.profile in ("gateway","all"): checks += gateway_checks()
     if args.profile in ("pull","all"): checks += pull_checks()
     code=overall_exit(checks)

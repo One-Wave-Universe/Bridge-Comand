@@ -18,6 +18,29 @@ Choose a subject below. Folder links show their contents; README and guide links
 | Bridge mesh | [hive-pipe/MODULAR_HYSTERETIC_BRIDGE_MESH.md](hive-pipe/MODULAR_HYSTERETIC_BRIDGE_MESH.md) | Bridge route architecture |
 | Pull recovery receipt | [hive-pipe/PULL_RECOVERY_2026-10-04.md](hive-pipe/PULL_RECOVERY_2026-10-04.md) | Dated evidence and remaining authentication boundaries |
 
+## How to find stuff
+
+- **Know the project?** Use the front-page table of contents above, then open that project's README.
+- **Know the filename?** Search the repository's file list by name. Preserve the exact spelling and capitalization; similar names can refer to different files.
+- **Know only the topic?** Start with the maps and indexes below. Search repository content with a distinctive term such as `transfluxor`, `poster`, `reinjection` or `relay`, then read the matching file and its authority links.
+- **Searching a checkout?** Use `rg --files` to list paths and `rg -n -i 'your topic' .` to find text. Run these inside the verified owning repository.
+- **Nothing in this repo?** Check the “Where things belong” table before searching another repo. An app may have a different folder name from its screen title; search its function and related terms too.
+- **Nothing on main?** Inspect relevant branches, pull requests and file history. A proposed or deleted file is not a current main-branch feature. Report the actual path, branch and commit you found.
+- **Found a guide or preview?** Follow its links to the source, assets or launch instructions. A guide is not the program, a flattened PNG is not the editable master, and a migration plan is not proof the files moved.
+- **Still unclear?** Record what was searched and what remains unknown. Return to repository evidence instead of inventing a location or assuming the item does not exist.
+
+### Maps and finding appendix
+
+| Map or index | Open |
+|---|---|
+| Operations and route map | [BRIDGE_COMMAND_START_HERE.md](BRIDGE_COMMAND_START_HERE.md) |
+| Bridge directions | [hive-pipe/BRIDGE_DIRECTIONS.md](hive-pipe/BRIDGE_DIRECTIONS.md) |
+| Bridge mesh architecture | [hive-pipe/MODULAR_HYSTERETIC_BRIDGE_MESH.md](hive-pipe/MODULAR_HYSTERETIC_BRIDGE_MESH.md) |
+| Folder watcher guide | [hive-pipe/OWATCH_FOLDER_TYPE.md](hive-pipe/OWATCH_FOLDER_TYPE.md) |
+| Science archive routes | [SCIENCE_ARCHIVE_RELAY.md](SCIENCE_ARCHIVE_RELAY.md) |
+
+For this repository's main folders and their purpose, use the table at the top. For a new or moved item, add its exact path there and update the owning map/index in the same change. Do not maintain a second copy of the indexed content.
+
 ## How to organize, clean, build, work and decide
 
 1. **Find the owner.** Use the repository table below and the canonical routing map before creating a file. Put science in Science, build artifacts in Builds, fiction in Mythos, and transport in Bridge-Comand. Link to the owning file rather than maintaining another copy.

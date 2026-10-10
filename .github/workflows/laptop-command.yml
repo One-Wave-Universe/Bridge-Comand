@@ -39,9 +39,9 @@ jobs:
               data=Path(".laptop-dispatch/Circuit_Builder_Run.cjs.gz").read_bytes()
               encoded=base64.b64encode(data).decode()
               chunks=[encoded[i:i+4000] for i in range(0,len(encoded),4000)]
-              for offset in range(0,len(chunks),100):
+              for offset in range(0,len(chunks),8):
                   code="import pathlib,base64,sys;p=pathlib.Path('/home/Scales/.cache/one-wave-circuit-transfer');p.mkdir(parents=True,exist_ok=True);f=p/'runner.gz';f.open(sys.argv[1]).write(base64.b64decode(''.join(sys.argv[2:])))"
-                  args={"argv":["python3","-c",code,"wb" if offset==0 else "ab"]+chunks[offset:offset+100],"cwd":"/home/Scales/One-Wave-Science","timeout":30,"intention":"Transfer the generated circuit runtime in bounded chunks","consequence":"Write only the temporary app artifact"}
+                  args={"argv":["python3","-c",code,"wb" if offset==0 else "ab"]+chunks[offset:offset+8],"cwd":"/home/Scales/One-Wave-Science","timeout":30,"intention":"Transfer the generated circuit runtime in bounded chunks","consequence":"Write only the temporary app artifact"}
                   payload={"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"terminal_run","arguments":args}}
                   req=urllib.request.Request(os.environ["GATEWAY_URL"].rstrip("/")+"/mcp",data=json.dumps(payload).encode(),headers={"Authorization":"Bearer "+os.environ["GATEWAY_TOKEN"],"Content-Type":"application/json"})
                   with urllib.request.urlopen(req,timeout=50) as response: result=json.load(response).get("result",{}).get("structuredContent",{})

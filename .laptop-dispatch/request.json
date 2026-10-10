@@ -1,12 +1,12 @@
 {
-  "id": "laptop-circuit-dependencies-mv283698",
+  "id": "laptop-circuit-install-reference-mv284sde",
   "argv": [
     "python3",
     "-c",
-    "import os,shutil,glob,json,platform,getpass; print(json.dumps({'host':platform.node(),'user':getpass.getuser(),'arch':platform.machine(),'node':shutil.which('node'),'ngspice':shutil.which('ngspice'),'runners':glob.glob('/home/scales/Downloads/Circuit_Builder_Run*.cjs'),'builds': [p for p in ['/home/scales/Builds','/home/scales/one-wave-universe/Builds','/media/scales'] if os.path.isdir(p)],'display':os.environ.get('DISPLAY'),'runtime':os.environ.get('XDG_RUNTIME_DIR')},indent=2))"
+    "import os,shutil,json,glob,subprocess; print(json.dumps({'os':open('/etc/os-release').read(),'gh':shutil.which('gh'),'dpkg-deb':shutil.which('dpkg-deb'),'apt-get':shutil.which('apt-get'),'downloadApps':glob.glob('/home/scales/Downloads/*Circuit*')+glob.glob('/home/scales/Downloads/*circuit*')},indent=2)); p=shutil.which('gh'); print(subprocess.run([p,'auth','status','--hostname','github.com'],capture_output=True,text=True).stderr if p else 'No gh')"
   ],
   "cwd": "/home/scales",
   "timeout": 30,
-  "intention": "Check the real laptop circuit runner and simulator dependencies",
-  "consequence": "Read host identity, executable paths and downloaded runner names without changing files"
+  "intention": "Inspect laptop package and authenticated source routes before installing the authorized builder",
+  "consequence": "Return OS/package tool availability and GitHub login status without printing credentials or changing files"
 }

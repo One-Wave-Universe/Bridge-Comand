@@ -1,12 +1,12 @@
 {
-  "id": "laptop-kicad-reference-mv28pr44",
+  "id": "laptop-kicad-snap-reference-mv28qq37",
   "argv": [
     "python3",
     "-c",
-    "import shutil,subprocess,json\nr={}\nfor n in ['kicad-cli','eeschema','kicad']:\n p=shutil.which(n);r[n]=p\n if n=='kicad-cli' and p:\n  q=subprocess.run([p,'version'],capture_output=True,text=True,timeout=10);r['version']=q.stdout;r['exit_code']=q.returncode\nprint(json.dumps(r))"
+    "import pathlib,subprocess,json\np=pathlib.Path('/snap/kicad/current/meta/snap.yaml');print(p.read_text() if p.is_file() else 'No KiCad snap manifest')\nfor n in ['/snap/bin/kicad.kicad-cli','/snap/bin/kicad.eeschema']:print(n,pathlib.Path(n).exists())"
   ],
   "cwd": "/home/scales",
   "timeout": 30,
-  "intention": "Inspect installed KiCad executables before configuring all three circuit tools",
-  "consequence": "Read executable paths and KiCad version only"
+  "intention": "Read existing KiCad snap app commands rather than duplicate the installation",
+  "consequence": "Read public application manifest and executable existence only"
 }

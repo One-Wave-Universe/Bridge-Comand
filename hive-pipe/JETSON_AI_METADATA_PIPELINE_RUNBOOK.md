@@ -52,3 +52,12 @@ Status: **PARTIAL** as of 2026-10-10. Do not report the stable Tailscale HTTPS r
 - Raw provider data and its checksums stay immutable; derived interpretations are separate.
 - `/home/Scales/One-Wave-Science/.one-wave-metadata/` is the proven metadata cache root. A file listing is **not** proof of a fresh ingest.
 - Require the remote result to be read back through the requested path before promoting a job to VERIFIED or DONE.
+
+## 2026-10-10 — Verified no-tunnel Jetson-initiated GitHub pull route
+- **VERIFIED:** `one-wave-chatgpt-terminal-pull.service` active/enabled on Jetson; it polls `One-Wave-Universe/One-Wave-Science` branches `chatgpt-terminal` and `chatgpt-terminal-backup` for `.chatgpt-terminal/request.json` and returns `.chatgpt-terminal/result.json`.
+- Root cause of previous stalled pull delivery: Git HTTPS credential helper was missing for the service's Git checkout; transport journal recorded `could not read Username for https://github.com` and thousands of retries.
+- Recovery applied: `gh auth setup-git` as Scales, then verified `git ls-remote` from the bridge checkout. Stopped pull user service, cleared only transport `retry_at`/state (preserving the request journal), restarted it.
+- Test request `chatgpt-pull-no-tunnel-proof-20261010-01` written identically to both transport branches, with `argv=["printf","JETSON_PULL_NO_TUNNEL_OK\\n"]`, bounded cwd and intention/consequence.
+- **Returned receipt on primary branch:** same request ID, `ok=true`, `exit_code=0`, `stdout=JETSON_PULL_NO_TUNNEL_OK`, `duration_ms=42`. This is a genuine end-to-end GitHub -> Jetson -> GitHub result without a public HTTPS tunnel.
+- **Scope:** command transport verified; fresh external science metadata ingest and full reboot recovery still require independent tests. GitHub pull transport does not require `JETSON_GATEWAY_URL`. Do not delete the existing MCP gateway or raw metadata cache.
+- Never put credentials in the request/result files. The queue parser remains the enforcement boundary. Each job needs unique ID, `argv`, `cwd`, `timeout`, `intention`, `consequence`; compare result ID and exit code before declaring success.

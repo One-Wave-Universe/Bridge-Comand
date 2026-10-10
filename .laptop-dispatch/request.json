@@ -1,10 +1,10 @@
 {
-  "id": "github-only-laptop-final-20261005-05",
+  "id": "laptop-circuit-identity-mv281s5t",
   "argv": [
     "hostname"
   ],
   "cwd": "/home/scales",
   "timeout": 30,
-  "intention": "Verify final shared laptop relay before app maintenance",
-  "consequence": "Return the Latitude hostname with exit zero without edits"
+  "intention": "Verify actual laptop access before launching the authorized 3D circuit builder",
+  "consequence": "Return Latitude hostname and exit zero without edits"
 }

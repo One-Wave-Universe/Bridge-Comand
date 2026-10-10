@@ -1,10 +1,12 @@
 {
-  "id": "laptop-circuit-identity-mv281s5t",
+  "id": "laptop-circuit-dependencies-mv283698",
   "argv": [
-    "hostname"
+    "python3",
+    "-c",
+    "import os,shutil,glob,json,platform,getpass; print(json.dumps({'host':platform.node(),'user':getpass.getuser(),'arch':platform.machine(),'node':shutil.which('node'),'ngspice':shutil.which('ngspice'),'runners':glob.glob('/home/scales/Downloads/Circuit_Builder_Run*.cjs'),'builds': [p for p in ['/home/scales/Builds','/home/scales/one-wave-universe/Builds','/media/scales'] if os.path.isdir(p)],'display':os.environ.get('DISPLAY'),'runtime':os.environ.get('XDG_RUNTIME_DIR')},indent=2))"
   ],
   "cwd": "/home/scales",
   "timeout": 30,
-  "intention": "Verify actual laptop access before launching the authorized 3D circuit builder",
-  "consequence": "Return Latitude hostname and exit zero without edits"
+  "intention": "Check the real laptop circuit runner and simulator dependencies",
+  "consequence": "Read host identity, executable paths and downloaded runner names without changing files"
 }
